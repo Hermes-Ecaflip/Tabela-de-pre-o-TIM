@@ -40,7 +40,7 @@ Desenvolvida para uso interno de vendedores e revendedores, permitindo consultar
 ## 🖥️ Demonstração
 
 > Acesse pelo GitHub Pages:  
-> **`https://<seu-usuario>.github.io/Tabela-de-preco-TIM/`**
+> **`https://hermes-ecaflip.github.io/Tabela-de-preco-da-TIM/`**
 
 ---
 
