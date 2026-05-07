@@ -5,9 +5,9 @@
 **Consulta de preços de aparelhos e acessórios por plano TIM**  
 Atualizado semanalmente conforme tabela oficial do canal Revendas.
 
-[![Status](https://img.shields.io/badge/status-ativo-brightgreen?style=flat-square)](https://github.com/)
-[![Última atualização](https://img.shields.io/badge/tabela-06%2F05%2F2026-blue?style=flat-square)](https://github.com/)
-[![Canal](https://img.shields.io/badge/canal-Revendas-orange?style=flat-square)](https://github.com/)
+[![Status](https://img.shields.io/badge/status-ativo-brightgreen?style=flat-square)](https://hermes-ecaflip.github.io/Tabela-de-preco-da-TIM/)
+[![Última atualização](https://img.shields.io/badge/tabela-06%2F05%2F2026-blue?style=flat-square)](https://hermes-ecaflip.github.io/Tabela-de-preco-da-TIM/)
+[![Canal](https://img.shields.io/badge/canal-Revendas-orange?style=flat-square)](https://hermes-ecaflip.github.io/Tabela-de-preco-da-TIM/)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-lightgrey?style=flat-square)](LICENSE)
 
 </div>
@@ -40,7 +40,7 @@ Desenvolvida para uso interno de vendedores e revendedores, permitindo consultar
 ## 🖥️ Demonstração
 
 > Acesse pelo GitHub Pages:  
-> **`https://hermes-ecaflip.github.io/Tabela-de-preco-da-TIM/`**
+> **[https://hermes-ecaflip.github.io/Tabela-de-preco-da-TIM/](https://hermes-ecaflip.github.io/Tabela-de-preco-da-TIM/)**
 
 ---
 
@@ -49,8 +49,8 @@ Desenvolvida para uso interno de vendedores e revendedores, permitindo consultar
 ### 1. Clone o repositório
 
 ```bash
-git clone https://github.com/<seu-usuario>/Tabela-de-preco-TIM.git
-cd Tabela-de-preco-TIM
+git clone https://github.com/hermes-ecaflip/Tabela-de-preco-da-TIM.git
+cd Tabela-de-preco-da-TIM
 ```
 
 ### 2. Abra no navegador
@@ -87,7 +87,7 @@ A tabela é atualizada semanalmente pela TIM. Para atualizar o site:
 ## 🗂️ Estrutura do Projeto
 
 ```
-Tabela-de-preco-TIM/
+Tabela-de-preco-da-TIM/
 │
 ├── index.html          # Aplicação completa (dados embutidos)
 ├── README.md           # Este arquivo
