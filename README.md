@@ -6,7 +6,7 @@
 Atualizado semanalmente conforme tabela oficial do canal Revendas.
 
 [![Status](https://img.shields.io/badge/status-ativo-brightgreen?style=flat-square)](https://hermes-ecaflip.github.io/Tabela-de-preco-da-TIM/)
-[![Última atualização](https://img.shields.io/badge/tabela-06%2F05%2F2026-blue?style=flat-square)](https://hermes-ecaflip.github.io/Tabela-de-preco-da-TIM/)
+[![Última atualização](https://img.shields.io/badge/tabela-12%2F05%2F2026-blue?style=flat-square)](https://hermes-ecaflip.github.io/Tabela-de-preco-da-TIM/)
 [![Canal](https://img.shields.io/badge/canal-Revendas-orange?style=flat-square)](https://hermes-ecaflip.github.io/Tabela-de-preco-da-TIM/)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-lightgrey?style=flat-square)](LICENSE)
 
@@ -27,7 +27,7 @@ Desenvolvida para uso interno de vendedores e revendedores, permitindo consultar
 | Funcionalidade | Descrição |
 |---|---|
 | 🔍 **Busca em tempo real** | Pesquisa instantânea por nome do aparelho ou acessório |
-| 📱 **234 itens catalogados** | Celulares, tablets, acessórios TIM e itens de loja |
+| 📱 **235 itens catalogados** | Celulares, tablets, acessórios TIM e itens de loja |
 | 💰 **Preços sem fidelização** | PRÉ (balcão), Base Faturamento, Controle e Pós não fidelizados |
 | 📋 **Planos fidelizados** | Mobile, TIM Fibra e TIM Casa com todos os subplanos |
 | 🏷️ **Logos das marcas** | Apple, Samsung, Motorola, Xiaomi, Nokia, JBL, Sony, PlayStation, Xbox e mais |
@@ -89,12 +89,13 @@ A tabela é atualizada semanalmente pela TIM. Para atualizar o site:
 ```
 Tabela-de-preco-da-TIM/
 │
-├── index.html          # Aplicação completa (dados embutidos)
+├── index.html          # Estrutura HTML da aplicação
+├── style.css           # Estilos e layout visual
+├── script.js           # Dados e lógica JavaScript
 ├── README.md           # Este arquivo
 └── LICENSE             # Licença MIT
 ```
 
-> Todo o conteúdo (HTML, CSS, JavaScript e dados) está embutido em um único arquivo `index.html`, facilitando o deploy via GitHub Pages sem necessidade de build.
 
 ---
 
@@ -159,5 +160,5 @@ Distribuído sob a licença MIT. Consulte o arquivo [LICENSE](LICENSE) para mais
 ---
 
 <div align="center">
-  <sub>Mantido por revendedor credenciado TIM · Atualizado em 06/05/2026</sub>
+  <sub>Mantido por revendedor credenciado TIM · Atualizado em 12/05/2026</sub>
 </div>
