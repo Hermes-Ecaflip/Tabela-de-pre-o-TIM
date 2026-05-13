@@ -76,9 +76,9 @@ Digite o nome do aparelho ou acessório no campo de busca, selecione o plano des
 A tabela é atualizada semanalmente pela TIM. Para atualizar o site:
 
 1. Receba o novo arquivo `.xlsx` da tabela oficial de Revendas
-2. Renomeie o arquivo e faça o upload neste repositório (substituindo o anterior)
-3. O `index.html` será regenerado automaticamente com os novos preços e data de vigência
-4. Faça o commit das alterações no GitHub para publicar
+2. Envie o arquivo para o Claude processar
+3. Faça upload dos arquivos gerados (`index.html`, `script.js`, `README.md`) no repositório
+4. Faça o commit — o GitHub Pages atualiza automaticamente em segundos
 
 > **Nota:** A data de atualização exibida no banner do site é lida diretamente do campo `DATA INÍCIO` da planilha oficial.
 
@@ -95,7 +95,6 @@ Tabela-de-preco-da-TIM/
 ├── README.md           # Este arquivo
 └── LICENSE             # Licença MIT
 ```
-
 
 ---
 
