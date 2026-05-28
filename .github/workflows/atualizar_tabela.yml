@@ -1,0 +1,35 @@
+name: Atualizar Tabela de Preços
+
+on:
+  push:
+    paths:
+      - 'tabela_precos.xlsx'
+  workflow_dispatch:
+
+jobs:
+  atualizar-dados:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: 📥 Baixar o repositório
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 📦 Instalar bibliotecas
+        run: pip install pandas openpyxl
+
+      - name: ⚙️ Rodar o script de conversão
+        run: python processar_planilha.py
+
+      - name: 🚀 Salvar alterações no GitHub Pages
+        run: |
+          git config --global user.name "GitHub Action Bot"
+          git config --global user.email "action@github.com"
+          git add script.js
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Automated: Atualização da tabela de preços" && git push)
