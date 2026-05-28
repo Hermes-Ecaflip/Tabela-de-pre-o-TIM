@@ -31,5 +31,5 @@ jobs:
         run: |
           git config --global user.name "GitHub Action Bot"
           git config --global user.email "action@github.com"
-          git add script.js
+          git add .
           git diff --quiet && git diff --staged --quiet || (git commit -m "Automated: Atualização da tabela de preços" && git push)
