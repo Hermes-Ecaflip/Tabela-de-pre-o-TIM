@@ -75,10 +75,10 @@ Digite o nome do aparelho ou acessório no campo de busca, selecione o plano des
 
 A tabela é atualizada semanalmente pela TIM. Para atualizar o site:
 
-1. Receba o novo arquivo `.xlsx` da tabela oficial de Revendas
-2. Renomeie o arquivo e faça o upload neste repositório (substituindo o anterior)
-3. O `index.html` será regenerado automaticamente com os novos preços e data de vigência
-4. Faça o commit das alterações no GitHub para publicar
+1. Renomeie o novo arquivo `.xlsx` para **`tabela_precos.xlsx`**
+2. Faça o upload no repositório (substituindo o anterior)
+3. O GitHub Actions detecta a mudança e roda `processar_planilha.py` automaticamente
+4. Em ~1 minuto, `script.js`, `index.html` e `README.md` são atualizados e o site entra no ar
 
 > **Nota:** A data de atualização exibida no banner do site é lida diretamente do campo `DATA INÍCIO` da planilha oficial.
 
@@ -89,21 +89,29 @@ A tabela é atualizada semanalmente pela TIM. Para atualizar o site:
 ```
 Tabela-de-preco-da-TIM/
 │
-├── index.html          # Estrutura HTML da aplicação
-├── style.css           # Estilos e layout visual
-├── script.js           # Dados e lógica JavaScript
-├── README.md           # Este arquivo
-└── LICENSE             # Licença MIT
+├── .github/
+│   └── workflows/
+│       └── atualizar_tabela.yml  # GitHub Actions — atualização automática
+│
+├── index.html              # HTML semântico (header / main / footer)
+├── style.css               # Estilos organizados por seções comentadas
+├── script.js               # Lógica JavaScript com comentários
+├── processar_planilha.py   # Script Python de extração da planilha
+├── tabela_precos.xlsx      # Planilha oficial TIM (substituir a cada semana)
+├── README.md               # Este arquivo
+└── LICENSE                 # Licença MIT
 ```
-
 
 ---
 
 ## 📦 Tecnologias Utilizadas
 
-- **HTML5 / CSS3 / JavaScript** — sem frameworks ou dependências externas
+- **HTML5 semântico** — `<header>`, `<main>`, `<section>`, `<article>`, `<footer>`, `<details>`
+- **CSS3** — variáveis, grid, animações, responsivo mobile-first
+- **JavaScript vanilla** — sem frameworks ou dependências externas
 - **Google Fonts** — Inter + DM Sans
-- **Python + openpyxl/pandas** — processamento e extração dos dados da planilha `.xlsx`
+- **Python + pandas + openpyxl** — extração automática dos dados do `.xlsx`
+- **GitHub Actions** — CI/CD para publicação automática
 - **GitHub Pages** — hospedagem estática gratuita
 
 ---
@@ -149,7 +157,7 @@ Tabela-de-preco-da-TIM/
 
 ## ⚠️ Aviso Legal
 
-Este projeto é de uso **interno e exclusivo para revendedores credenciados TIM**. Os preços exibidos são válidos para o canal Revendas **com fidelização**, conforme tabela oficial vigente. Não é uma ferramenta oficial da TIM S.A.
+Este projeto é de uso **interno e exclusivo para revendedores credenciados TIM**. Os preços exibidos são válidos para o canal Revendas conforme tabela oficial vigente. Não é uma ferramenta oficial da TIM S.A.
 
 ---
 

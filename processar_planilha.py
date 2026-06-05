@@ -155,19 +155,28 @@ def main():
     print("✅ script.js atualizado")
 
     # ── 2. index.html ─────────────────────────────────────────────────────
+    # Nota: os padrões abaixo foram ajustados para a estrutura HTML semântica
+    # que usa <time datetime="..."> e <p class="header-badge"> em vez de <div class="hbadge">
     with open('index.html', 'r', encoding='utf-8') as f:
         html = f.read()
-    # Atualiza data no header e banner
-    html = re.sub(r'Tabela Revendas · Com Fidelização · 📅 [\d/]+',
-                  f'Tabela Revendas · Com Fidelização · 📅 {data_atualizacao}', html)
+
+    # Datas dentro de elementos <time> (header e footer)
+    data_iso = f"{data_atualizacao[6:]}-{data_atualizacao[3:5]}-{data_atualizacao[:2]}"
+    novo_time = f'<time datetime="{data_iso}">{data_atualizacao}</time>'
+    html = re.sub(r'<time datetime="[\d-]+">[^<]+</time>', novo_time, html)
+
+    # Banner de atualização
     html = re.sub(r'Tabela atualizada em <strong>[\d/]+</strong>',
                   f'Tabela atualizada em <strong>{data_atualizacao}</strong>', html)
     html = re.sub(r'Vigência: [\d/]+', f'Vigência: {data_atualizacao}', html)
-    # Atualiza contagem — badge e footer
-    html = re.sub(r'<div class="hbadge">\d+ itens</div>',
-                  f'<div class="hbadge">{total} itens</div>', html)
-    html = re.sub(r'\d+ itens · Canal Revendas · Última atualização: [\d/]+',
-                  f'{total} itens · Canal Revendas · Última atualização: {data_atualizacao}', html)
+
+    # Badge de contagem no header
+    html = re.sub(r'<p class="header-badge"[^>]*>\d+ itens</p>',
+                  f'<p class="header-badge" aria-label="Total de itens">{total} itens</p>', html)
+
+    # Contagem no footer
+    html = re.sub(r'\d+ itens &middot; Canal Revendas &middot;',
+                  f'{total} itens &middot; Canal Revendas &middot;', html)
     with open('index.html', 'w', encoding='utf-8') as f:
         f.write(html)
     print("✅ index.html atualizado")

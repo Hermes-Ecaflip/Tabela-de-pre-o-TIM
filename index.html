@@ -1,101 +1,151 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TIM — Consulta de Preços</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Consulta de preços de aparelhos e acessórios TIM para canal Revendas">
+  <title>TIM — Consulta de Preços · Revendas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="wrap">
 
-<header>
-  <div class="tim-logo"><svg viewBox="0 0 110 44" xmlns="http://www.w3.org/2000/svg"><rect width="110" height="44" rx="9" fill="#0070f3"/><text x="55" y="30" text-anchor="middle" font-family="Arial Black,sans-serif" font-weight="900" font-size="24" fill="white" letter-spacing="-0.5">TIM</text></svg></div>
-  <div class="hd"></div>
-  <div class="header-text"><h1>Consulta de Preços</h1><p>Tabela Revendas · Com Fidelização</p></div>
-  <div class="hbadge">238 itens</div>
-</header>
+  <!-- ════════════════════════════════════════════════════
+       CABEÇALHO — Identidade visual e data da tabela
+  ════════════════════════════════════════════════════ -->
+  <header class="site-header" role="banner">
+    <div class="header-inner">
 
-<div class="update-banner">
-  <div class="udot"></div>
-  <div class="utext">Tabela atualizada em <strong>27/05/2026</strong> — Canal Revendas · COM FIDELIZAÇÃO</div>
-  <div class="uright">Vigência: 27/05/2026</div>
-</div>
-
-<div class="search-section">
-  <div class="slabel">Buscar Aparelho ou Acessório</div>
-  <div class="search-wrap">
-    <svg class="sicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input type="text" id="searchInput" placeholder="Ex: iPhone 16, Galaxy S25, JBL Flip, PS5..." autocomplete="off" spellcheck="false">
-    <div class="sclear" id="sclear">✕</div>
-    <div class="dropdown" id="dropdown"></div>
-  </div>
-</div>
-
-<div class="plan-section" id="planSection">
-  <div class="slabel">Selecionar Plano</div>
-  <div class="plan-tabs" id="planTabs">
-    <button class="ptab active" data-group="nonfid">💰 Sem Fidelização</button>
-    <button class="ptab" data-group="mobile">📱 Mobile Fidelizado</button>
-    <button class="ptab" data-group="fibra">🌐 TIM Fibra</button>
-    <button class="ptab" data-group="casa">🏠 TIM Casa</button>
-  </div>
-  <div id="planGrid"></div>
-</div>
-
-<div class="result-section" id="resultSection">
-  <div class="result-card">
-    <div class="result-header">
-      <div class="blogo" id="brandBox"></div>
-      <div class="rinfo">
-        <div class="rtype" id="rtype"></div>
-        <div class="rmodel" id="rmodel"></div>
-        <div class="rtags" id="rtags"></div>
-      </div>
-    </div>
-
-    <div class="spotlight" id="spotlight">
-      <div class="sp-empty" id="spEmpty">Selecione um plano acima para ver o preço</div>
-      <div id="spFilled" style="display:none">
-        <div class="sp-top"><div class="sp-lbl">Preço no plano</div><div class="sp-pname" id="spPlanName"></div></div>
-        <div class="sp-bottom">
-          <div class="sp-pb">
-            <div class="sp-row">
-              <span class="sp-curr">R$</span>
-              <span class="sp-int" id="spInt"></span>
-              <span class="sp-dec" id="spDec"></span>
-            </div>
-            <div class="sp-hint" id="spHint"></div>
-          </div>
-          <div class="sp-cmp" id="spCmp"></div>
+      <div class="brand">
+        <span class="brand-logo" aria-label="TIM">TIM</span>
+        <div class="brand-divider" aria-hidden="true"></div>
+        <div class="brand-text">
+          <h1>Consulta de Preços</h1>
+          <p>Tabela Revendas · Com Fidelização · <time datetime="2026-05-27">27/05/2026</time></p>
         </div>
       </div>
-    </div>
 
-    <div class="ap-toggle" id="apToggle">
-      <div class="ap-left">
-        <span class="ap-title">Todos os planos disponíveis</span>
-        <span class="ap-cnt" id="apCnt">0</span>
+      <p class="header-badge" aria-label="Total de itens">238 itens</p>
+
+    </div>
+  </header>
+
+  <!-- ════════════════════════════════════════════════════
+       CONTEÚDO PRINCIPAL
+  ════════════════════════════════════════════════════ -->
+  <main class="site-main" role="main">
+
+    <!-- Banner de vigência da tabela -->
+    <aside class="update-banner" aria-label="Informação de atualização">
+      <span class="update-dot" aria-hidden="true"></span>
+      <p class="update-text">
+        Tabela atualizada em <strong>27/05/2026</strong> — Canal Revendas · COM FIDELIZAÇÃO
+      </p>
+      <p class="update-date">Vigência: 27/05/2026</p>
+    </aside>
+
+    <!-- Seção de busca -->
+    <section class="search-section" aria-label="Busca de produtos">
+      <label class="field-label" for="searchInput">Buscar Aparelho ou Acessório</label>
+      <div class="search-wrapper" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-owns="searchDropdown">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input
+          type="search"
+          id="searchInput"
+          placeholder="Ex: iPhone 16, Galaxy S25, JBL Flip, PS5…"
+          autocomplete="off"
+          spellcheck="false"
+          aria-autocomplete="list"
+          aria-controls="searchDropdown"
+        >
+        <button class="search-clear" id="searchClear" aria-label="Limpar busca" hidden>✕</button>
+        <ul class="search-dropdown" id="searchDropdown" role="listbox" aria-label="Sugestões de produtos"></ul>
       </div>
-      <span class="ap-chev" id="apChev">▼</span>
-    </div>
-    <div class="ap-body" id="apBody">
-      <div class="ap-inner" id="apGrid"></div>
-    </div>
-  </div>
-</div>
+    </section>
 
-<div class="empty-state" id="emptyState">
-  <div class="empty-icon">🔍</div>
-  <h2>Busque um aparelho ou acessório</h2>
-  <p>Digite o nome para consultar os preços por plano TIM. Inclui celulares, tablets e acessórios.</p>
-</div>
+    <!-- Seletor de planos (visível após selecionar produto) -->
+    <section class="plan-section" id="planSection" aria-label="Seleção de plano" hidden>
+      <p class="field-label">Selecionar Plano</p>
+      <nav class="plan-tabs" id="planTabs" aria-label="Grupos de planos">
+        <button class="plan-tab active" data-group="nonfid" aria-pressed="true">💰 Sem Fidelização</button>
+        <button class="plan-tab" data-group="mobile" aria-pressed="false">📱 Mobile Fidelizado</button>
+        <button class="plan-tab" data-group="fibra" aria-pressed="false">🌐 TIM Fibra</button>
+        <button class="plan-tab" data-group="casa" aria-pressed="false">🏠 TIM Casa</button>
+      </nav>
+      <div id="planGrid" role="list" aria-label="Planos disponíveis"></div>
+    </section>
 
-<div class="footer">
-  238 itens · Canal Revendas · Última atualização: 27/05/2026 · COM FIDELIZAÇÃO
-</div>
-</div>
-<script src="script.js"></script>
+    <!-- Resultado da consulta (visível após selecionar produto) -->
+    <section class="result-section" id="resultSection" aria-label="Resultado da consulta" hidden>
+      <article class="product-card">
+
+        <!-- Identificação do produto -->
+        <header class="product-header">
+          <div class="product-logo" id="productLogo" aria-hidden="true"></div>
+          <div class="product-info">
+            <p class="product-type" id="productType"></p>
+            <h2 class="product-name" id="productName"></h2>
+            <ul class="product-tags" id="productTags" aria-label="Características do produto"></ul>
+          </div>
+        </header>
+
+        <!-- Destaque do preço selecionado -->
+        <div class="price-spotlight" id="priceSpotlight" aria-live="polite">
+          <p class="price-empty" id="priceEmpty">Selecione um plano acima para ver o preço</p>
+
+          <div class="price-filled" id="priceFilled" hidden>
+            <div class="price-plan-info">
+              <span class="price-label">Preço no plano</span>
+              <span class="price-plan-name" id="pricePlanName"></span>
+            </div>
+            <div class="price-value-row">
+              <div class="price-value-block">
+                <span class="price-currency">R$</span>
+                <span class="price-integer" id="priceInteger"></span>
+                <span class="price-decimal" id="priceDecimal"></span>
+              </div>
+              <p class="price-hint" id="priceHint"></p>
+              <div class="price-comparison" id="priceComparison"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Todos os planos disponíveis (colapsável via elemento nativo) -->
+        <details class="all-plans" id="allPlansDetails">
+          <summary class="all-plans-toggle">
+            <span class="all-plans-title">Todos os planos disponíveis</span>
+            <span class="all-plans-count badge" id="allPlansCount">0</span>
+            <span class="all-plans-chevron" aria-hidden="true">▼</span>
+          </summary>
+          <ul class="all-plans-grid" id="allPlansGrid" role="list"></ul>
+        </details>
+
+      </article>
+    </section>
+
+    <!-- Estado inicial vazio (visível enquanto nenhum produto estiver selecionado) -->
+    <div class="empty-state" id="emptyState" aria-live="polite">
+      <span class="empty-icon" aria-hidden="true">🔍</span>
+      <h2>Busque um aparelho ou acessório</h2>
+      <p>Digite o nome para consultar os preços por plano TIM.<br>Inclui celulares, tablets e acessórios.</p>
+    </div>
+
+  </main>
+
+  <!-- ════════════════════════════════════════════════════
+       RODAPÉ — Contagem, canal e data de vigência
+  ════════════════════════════════════════════════════ -->
+  <footer class="site-footer" role="contentinfo">
+    <p>
+      238 itens &middot; Canal Revendas &middot;
+      Última atualização: <time datetime="2026-05-27">27/05/2026</time> &middot; COM FIDELIZAÇÃO
+    </p>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>
