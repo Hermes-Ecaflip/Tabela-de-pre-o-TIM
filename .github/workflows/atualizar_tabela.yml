@@ -1,10 +1,10 @@
-name: Atualizar Tabela de Preços
+name: 🔄 Atualizar Tabela de Preços
 
 on:
   push:
     paths:
-      - 'tabela_precos.xlsx'
-  workflow_dispatch:
+      - 'tabela_precos.xlsx'   # Dispara quando o xlsx for enviado ao repositório
+  workflow_dispatch:            # Permite rodar manualmente pelo GitHub
 
 jobs:
   atualizar-dados:
@@ -13,23 +13,25 @@ jobs:
       contents: write
 
     steps:
-      - name: 📥 Baixar o repositório
+      - name: 📥 Baixar repositório
         uses: actions/checkout@v4
 
-      - name: 🐍 Configurar Python
+      - name: 🐍 Configurar Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
-      - name: 📦 Instalar bibliotecas
+      - name: 📦 Instalar dependências
         run: pip install pandas openpyxl
 
-      - name: ⚙️ Rodar o script de conversão
+      - name: ⚙️ Processar planilha e atualizar arquivos
         run: python processar_planilha.py
 
-      - name: 🚀 Salvar alterações no GitHub Pages
+      - name: 🚀 Publicar alterações no GitHub Pages
         run: |
-          git config --global user.name "GitHub Action Bot"
-          git config --global user.email "action@github.com"
-          git add .
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Automated: Atualização da tabela de preços" && git push)
+          git config --global user.name  "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          git add script.js index.html README.md
+          git diff --quiet && git diff --staged --quiet \
+            || git commit -m "🤖 Tabela atualizada automaticamente" \
+            && git push
