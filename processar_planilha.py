@@ -1,199 +1,342 @@
-import pandas as pd
+"""
+═══════════════════════════════════════════════════════════════════════
+ TIM Consulta de Preços — Processador da Planilha Oficial (Revendas)
+═══════════════════════════════════════════════════════════════════════
+
+ Lê a planilha `tabela_precos.xlsx`, extrai aparelhos e acessórios de
+ todas as colunas de plano e atualiza automaticamente:
+
+   • script.js   → array DATA com todos os produtos
+   • index.html  → data de vigência e contagem de itens
+   • README.md   → selo de data e contagem de itens
+
+ IMPORTANTE: as colunas de plano são DETECTADAS automaticamente entre as
+ colunas-âncora "PÓS PAGO NÃO FIDELIZADO" e "DATA FIM DA OFERTA". Assim,
+ se a TIM adicionar ou remover um plano, o script se adapta sozinho — sem
+ necessidade de editar nenhuma lista fixa.
+
+ Uso:  python processar_planilha.py
+═══════════════════════════════════════════════════════════════════════
+"""
+
 import json
 import re
 import urllib.parse
 from datetime import datetime
 from collections import defaultdict
 
-# ─────────────────────────────────────────────
-# Nomes exatos das colunas de plano na planilha
-# ─────────────────────────────────────────────
-PLAN_COLS = [
-    'TIM CONTROLE ', 'TIM CONTROLE PLUS', 'TIM CONTROLE PREMIUM',
-    'TIM CONTROLE SMART', 'TIM CONTROLE REDES SOCIAIS ',
-    'TIM BLACK', 'TIM BLACK PLUS', 'TIM BLACK PREMIUM',
-    'TIM BLACK A (15GB)', 'TIM BLACK B (20GB)', 'TIM BLACK C (25GB)',
-    'TIM BLACK C ULTRA', 'TIM BLACK FAMÍLIA', 'TIM BLACK FAMÍLIA A ONE',
-    'TIM BLACK FAMÍLIA PLUS', 'TIM BLACK FAMÍLIA PREMIUM',
-    'TIM BLACK FAMÍLIA C ONE', 'TIM BLACK FAMÍLIA VIP',
-    'TIM Fibra 300M 24', 'TIM Fibra 400M 24', 'TIM Fibra 500M 24 - 2',
-    'TIM Fibra 600M 24 - 2', 'TIM Fibra 600M P 24 - 2',
-    'TIM Fibra 600M M 24 - 2', 'TIM Fibra 600M GP 25',
-    'TIM Fibra 1GB 24', 'TIM Fibra 1GB P 24',
-    'TIM Fibra 1GB M 24', 'TIM Fibra 2GB 24',
-    'TIM FIXO LOCAL TOTAL PLUS (Plano Fidelizado) ',
-    'TIM FIXO BRASIL TOTAL PLUS (Plano Fidelizado)',
-    'TIM FIXO TOTAL LDI PLUS (Plano Fidelizado)',
-    'TIM LIVE INTERNET 30GB (sem fidelização)',
-    'TIM LIVE INTERNET 50GB (sem fidelização)',
-    'TIM LIVE INTERNET 80GB (sem fidelização)',
-    'TIM LIVE INTERNET 30GB PLUS ',
-    'TIM LIVE INTERNET 50GB PLUS ',
-    'TIM LIVE INTERNET 80GB PLUS',
+import pandas as pd
+
+
+# ──────────────────────────────────────────────────────────────────────
+# CONFIGURAÇÃO
+# ──────────────────────────────────────────────────────────────────────
+
+ARQUIVO_XLSX = "tabela_precos.xlsx"
+
+# Cabeçalhos (linha onde começam os títulos das colunas) de cada aba
+HEADER_REV = 11   # aba "REV" (aparelhos)
+HEADER_ACC = 6    # aba "ACESSÓRIOS REV" (acessórios)
+
+# Colunas-âncora que delimitam o intervalo de planos.
+# Tudo que estiver ENTRE elas é tratado como uma coluna de plano.
+ANCORA_INICIO = "PÓS PAGO NÃO FIDELIZADO - VIDE ABA DE REGRAS"
+ANCORA_FIM = "DATA FIM DA OFERTA"
+
+# Nomes (normalizados) das colunas de preço sem fidelização
+COL_CODIGO      = "CÓDIGO"
+COL_DESCRICAO   = "DESCRIÇÃO COMERCIAL"
+COL_DESC_SAP    = "DESCRIÇÃO SAP"
+COL_CATEGORIA   = "CATEGORIA\nMKT"
+COL_PRE         = "PRÉ"
+COL_BASE        = "PREÇO BASE FATURAMENTO RETAIL"
+COL_CTRL_NF     = "CONTROLE NÃO FIDELIZADO - TODOS\n(Fatura / Express)"
+COL_POS_NF      = "PÓS PAGO NÃO FIDELIZADO - VIDE ABA DE REGRAS"
+COL_DATA_FIM    = "DATA FIM DA OFERTA"
+COL_TECNOLOGIA  = "TECNOLOGIA"
+
+# Acessórios fixos da loja (não constam na planilha oficial da TIM)
+LOJA_ITEMS = [
+    ("CAPA TRANSPARENTE",            "ACESSÓRIOS LOJA", 39.99),
+    ("CARREGADOR APPLE USB C 20W",   "ACESSÓRIOS LOJA", 219.00),
+    ("CARREGADOR FAST CHARGING 25W", "ACESSÓRIOS LOJA", 199.00),
+    ("CABO C 2M IMENSO",             "ACESSÓRIOS LOJA", 49.00),
+    ("POWERBANK 10000MAH",           "ACESSÓRIOS LOJA", 99.00),
+    ("CAIXINHA MINI LEHMOX",         "ACESSÓRIOS LOJA", 59.00),
 ]
 
-# Acessórios fixos da loja (não estão na planilha TIM)
-LOJA_ITEMS = [
-    ("CAPA TRANSPARENTE",          "ACESSÓRIOS LOJA", 39.99),
-    ("CARREGADOR APPLE USB C 20W", "ACESSÓRIOS LOJA", 219.00),
-    ("CARREGADOR FAST CHARGING 25W","ACESSÓRIOS LOJA", 199.00),
-    ("CABO C 2M IMENSO",           "ACESSÓRIOS LOJA", 49.00),
-    ("POWERBANK 10000MAH",         "ACESSÓRIOS LOJA", 99.00),
-    ("CAIXINHA MINI LEHMOX",       "ACESSÓRIOS LOJA", 59.00),
-]
+
+# ──────────────────────────────────────────────────────────────────────
+# FUNÇÕES AUXILIARES DE LIMPEZA
+# ──────────────────────────────────────────────────────────────────────
 
 def clean_val(val):
-    if pd.isna(val): return None
+    """Converte um valor de célula em float positivo, ou None se inválido."""
+    if pd.isna(val):
+        return None
     try:
-        v = float(str(val).replace(',', '.'))
-        return v if v > 0 else None
-    except:
+        numero = float(str(val).replace(",", "."))
+        return numero if numero > 0 else None
+    except (ValueError, TypeError):
         return None
 
+
 def clean_str(val):
-    return str(val).strip() if pd.notna(val) else ''
+    """Converte um valor de célula em string limpa (sem espaços nas pontas)."""
+    return str(val).strip() if pd.notna(val) else ""
 
-def process_sheet(df, tipo, has_tecnologia):
-    products = []
+
+def detectar_colunas_de_plano(df):
+    """
+    Detecta dinamicamente as colunas de plano de um DataFrame.
+
+    Retorna a lista de nomes de coluna situados ENTRE a âncora de início
+    e a âncora de fim. Dessa forma, novos planos adicionados pela TIM são
+    capturados automaticamente.
+    """
+    colunas = list(df.columns)
+    nomes_norm = [str(c).strip() for c in colunas]
+
+    try:
+        idx_inicio = nomes_norm.index(ANCORA_INICIO) + 1
+    except ValueError:
+        print(f"⚠️  Âncora de início não encontrada: {ANCORA_INICIO!r}")
+        return []
+
+    # A âncora de fim pode não existir em todas as abas; nesse caso vai até o fim
+    try:
+        idx_fim = nomes_norm.index(ANCORA_FIM)
+    except ValueError:
+        idx_fim = len(colunas)
+
+    plano_cols = colunas[idx_inicio:idx_fim]
+    # Remove colunas vazias ou "Unnamed" geradas pelo pandas
+    return [c for c in plano_cols if not str(c).startswith("Unnamed") and str(c).strip()]
+
+
+# ──────────────────────────────────────────────────────────────────────
+# EXTRAÇÃO DOS PRODUTOS
+# ──────────────────────────────────────────────────────────────────────
+
+def process_sheet(df, tipo, tem_tecnologia):
+    """
+    Extrai todos os produtos de uma aba.
+
+    Args:
+        df: DataFrame da aba.
+        tipo: 'aparelho' ou 'acessorio'.
+        tem_tecnologia: se a aba possui coluna TECNOLOGIA.
+
+    Returns:
+        Lista de dicionários de produto.
+    """
+    plano_cols = detectar_colunas_de_plano(df)
+    print(f"   • {len(plano_cols)} colunas de plano detectadas em '{tipo}'")
+
+    produtos = []
     for _, row in df.iterrows():
-        codigo   = clean_str(row.get('CÓDIGO', ''))
-        descricao = clean_str(row.get('DESCRIÇÃO COMERCIAL', ''))
-        if not codigo or codigo in ('nan', '0') or not descricao or descricao == 'nan':
+        codigo = clean_str(row.get(COL_CODIGO, ""))
+        descricao = clean_str(row.get(COL_DESCRICAO, ""))
+
+        # Ignora linhas sem código ou descrição válidos
+        if not codigo or codigo in ("nan", "0") or not descricao or descricao == "nan":
             continue
-        plans = {}
-        for col in PLAN_COLS:
-            if col in df.columns:
-                v = clean_val(row.get(col))
-                if v is not None:
-                    plans[col.strip()] = v  # remove trailing spaces no nome do plano
-        products.append({
-            'codigo':          codigo,
-            'descricao':       descricao,
-            'descricao_sap':   clean_str(row.get('DESCRIÇÃO SAP', '')),
-            'categoria':       clean_str(row.get('CATEGORIA\nMKT', '')).replace('\n', ' '),
-            'pre':             clean_val(row.get('PRÉ')),
-            'base_retail':     clean_val(row.get('PREÇO BASE FATURAMENTO RETAIL')),
-            'controle_nao_fid':clean_val(row.get('CONTROLE NÃO FIDELIZADO - TODOS\n(Fatura / Express)')),
-            'pos_nao_fid':     clean_val(row.get('PÓS PAGO NÃO FIDELIZADO - VIDE ABA DE REGRAS')),
-            'data_fim':        clean_str(row.get('DATA FIM DA OFERTA', '')),
-            'tecnologia':      clean_str(row.get('TECNOLOGIA', '')) if has_tecnologia else '',
-            'tipo':            tipo,
-            'planos':          plans,
-            'variants':        [clean_str(row.get('DESCRIÇÃO SAP', ''))],
+
+        # Monta o dicionário de planos (apenas com preço válido)
+        planos = {}
+        for col in plano_cols:
+            preco = clean_val(row.get(col))
+            if preco is not None:
+                planos[str(col).strip()] = preco
+
+        produtos.append({
+            "codigo":           codigo,
+            "descricao":        descricao,
+            "descricao_sap":    clean_str(row.get(COL_DESC_SAP, "")),
+            "categoria":        clean_str(row.get(COL_CATEGORIA, "")).replace("\n", " "),
+            "pre":              clean_val(row.get(COL_PRE)),
+            "base_retail":      clean_val(row.get(COL_BASE)),
+            "controle_nao_fid": clean_val(row.get(COL_CTRL_NF)),
+            "pos_nao_fid":      clean_val(row.get(COL_POS_NF)),
+            "data_fim":         clean_str(row.get(COL_DATA_FIM, "")),
+            "tecnologia":       clean_str(row.get(COL_TECNOLOGIA, "")) if tem_tecnologia else "",
+            "tipo":             tipo,
+            "planos":           planos,
+            "variants":         [clean_str(row.get(COL_DESC_SAP, ""))],
         })
-    return products
 
-def dedup(products):
-    groups = defaultdict(list)
-    for p in products:
-        groups[p['descricao'].upper().strip()].append(p)
-    merged = []
-    for items in groups.values():
-        base = items[0].copy()
-        all_plans = {}
-        for item in items:
-            for plan, price in item['planos'].items():
-                if plan not in all_plans or price < all_plans[plan]:
-                    all_plans[plan] = price
-        for field in ['base_retail', 'controle_nao_fid', 'pos_nao_fid', 'pre']:
-            vals = [i[field] for i in items if i.get(field) is not None]
-            base[field] = min(vals) if vals else None
-        base['planos']   = all_plans
-        base['variants'] = list(set(i['descricao_sap'] for i in items if i.get('descricao_sap')))
-        merged.append(base)
-    return merged
+    return produtos
 
-def get_date():
-    df_raw = pd.read_excel('tabela_precos.xlsx', sheet_name='REV', header=None, nrows=13)
-    for i in range(13):
+
+def dedup(produtos):
+    """
+    Agrupa produtos com a mesma descrição (variantes de cor) em um só item,
+    mantendo o menor preço de cada plano e de cada campo sem fidelização.
+    """
+    grupos = defaultdict(list)
+    for p in produtos:
+        grupos[p["descricao"].upper().strip()].append(p)
+
+    resultado = []
+    for itens in grupos.values():
+        base = itens[0].copy()
+
+        # Menor preço de cada plano entre as variantes
+        planos_merged = {}
+        for item in itens:
+            for plano, preco in item["planos"].items():
+                if plano not in planos_merged or preco < planos_merged[plano]:
+                    planos_merged[plano] = preco
+
+        # Menor preço dos campos sem fidelização
+        for campo in ["base_retail", "controle_nao_fid", "pos_nao_fid", "pre"]:
+            valores = [i[campo] for i in itens if i.get(campo) is not None]
+            base[campo] = min(valores) if valores else None
+
+        base["planos"] = planos_merged
+        base["variants"] = list({i["descricao_sap"] for i in itens if i.get("descricao_sap")})
+        resultado.append(base)
+
+    return resultado
+
+
+def adicionar_itens_loja(acessorios):
+    """Acrescenta os acessórios fixos da loja que não constam na planilha."""
+    existentes = {a["descricao"].upper() for a in acessorios}
+    for desc, cat, preco in LOJA_ITEMS:
+        if desc.upper() not in existentes:
+            acessorios.append({
+                "codigo": "LOJA", "descricao": desc, "descricao_sap": desc,
+                "categoria": cat, "pre": preco, "base_retail": None,
+                "controle_nao_fid": None, "pos_nao_fid": None,
+                "data_fim": "", "tecnologia": "", "tipo": "acessorio",
+                "planos": {}, "variants": [],
+            })
+    return acessorios
+
+
+# ──────────────────────────────────────────────────────────────────────
+# LEITURA DA DATA DA TABELA
+# ──────────────────────────────────────────────────────────────────────
+
+def ler_data_tabela():
+    """Lê a data de vigência do campo 'DATA INÍCIO:' nas primeiras linhas da aba REV."""
+    df_raw = pd.read_excel(ARQUIVO_XLSX, sheet_name="REV", header=None, nrows=13)
+    for i in range(len(df_raw)):
         row = df_raw.iloc[i]
         for j, val in enumerate(row):
-            if str(val).strip() == 'DATA INÍCIO:' and j + 1 < len(row):
-                raw = row.iloc[j + 1]
-                if isinstance(raw, datetime):
-                    return raw.strftime("%d/%m/%Y")
-                parts = str(raw).strip().split(' ')[0].split('-')
-                if len(parts) == 3:
-                    return f"{parts[2]}/{parts[1]}/{parts[0]}"
-    return "Recente"
+            if str(val).strip() == "DATA INÍCIO:" and j + 1 < len(row):
+                bruto = row.iloc[j + 1]
+                if isinstance(bruto, datetime):
+                    return bruto.strftime("%d/%m/%Y")
+                partes = str(bruto).strip().split(" ")[0].split("-")
+                if len(partes) == 3:
+                    return f"{partes[2]}/{partes[1]}/{partes[0]}"
+    return datetime.now().strftime("%d/%m/%Y")
 
-def main():
-    print("📋 Lendo planilha...")
-    data_atualizacao = get_date()
-    print(f"📅 Data identificada: {data_atualizacao}")
 
-    df_rev = pd.read_excel('tabela_precos.xlsx', sheet_name='REV',          header=11)
-    df_acc = pd.read_excel('tabela_precos.xlsx', sheet_name='ACESSÓRIOS REV', header=6)
+# ──────────────────────────────────────────────────────────────────────
+# ATUALIZAÇÃO DOS ARQUIVOS DO SITE
+# ──────────────────────────────────────────────────────────────────────
 
-    phones = dedup(process_sheet(df_rev, 'aparelho',  has_tecnologia=True))
-    acc    = dedup(process_sheet(df_acc, 'acessorio', has_tecnologia=False))
-
-    # Adiciona itens fixos da loja que não estão na planilha TIM
-    existing = {a['descricao'].upper() for a in acc}
-    for desc, cat, price in LOJA_ITEMS:
-        if desc.upper() not in existing:
-            acc.append({
-                'codigo': 'LOJA', 'descricao': desc, 'descricao_sap': desc,
-                'categoria': cat, 'pre': price, 'base_retail': None,
-                'controle_nao_fid': None, 'pos_nao_fid': None,
-                'data_fim': '', 'tecnologia': '', 'tipo': 'acessorio',
-                'planos': {}, 'variants': [],
-            })
-
-    all_data   = sorted(phones + acc, key=lambda x: x['descricao'])
-    total      = len(all_data)
-    data_json  = json.dumps(all_data, ensure_ascii=False, separators=(',', ':'))
-
-    print(f"✅ {total} itens extraídos ({len(phones)} aparelhos + {len(acc)} acessórios)")
-
-    # ── 1. script.js ──────────────────────────────────────────────────────
-    with open('script.js', 'r', encoding='utf-8') as f:
-        js = f.read()
-    js = re.sub(r'const DATA = \[.*?\];', f'const DATA = {data_json};', js, flags=re.DOTALL, count=1)
-    with open('script.js', 'w', encoding='utf-8') as f:
-        f.write(js)
+def atualizar_script_js(data_json):
+    """Substitui o array DATA dentro de script.js."""
+    with open("script.js", "r", encoding="utf-8") as f:
+        conteudo = f.read()
+    conteudo = re.sub(
+        r"const DATA = \[.*?\];",
+        f"const DATA = {data_json};",
+        conteudo,
+        flags=re.DOTALL,
+        count=1,
+    )
+    with open("script.js", "w", encoding="utf-8") as f:
+        f.write(conteudo)
     print("✅ script.js atualizado")
 
-    # ── 2. index.html ─────────────────────────────────────────────────────
-    # Nota: os padrões abaixo foram ajustados para a estrutura HTML semântica
-    # que usa <time datetime="..."> e <p class="header-badge"> em vez de <div class="hbadge">
-    with open('index.html', 'r', encoding='utf-8') as f:
+
+def atualizar_index_html(data_br, total):
+    """Atualiza data de vigência e contagem de itens em index.html."""
+    with open("index.html", "r", encoding="utf-8") as f:
         html = f.read()
 
-    # Datas dentro de elementos <time> (header e footer)
-    data_iso = f"{data_atualizacao[6:]}-{data_atualizacao[3:5]}-{data_atualizacao[:2]}"
-    novo_time = f'<time datetime="{data_iso}">{data_atualizacao}</time>'
+    # Data em formato ISO para o atributo datetime das tags <time>
+    data_iso = f"{data_br[6:]}-{data_br[3:5]}-{data_br[:2]}"
+    novo_time = f'<time datetime="{data_iso}">{data_br}</time>'
+
+    # Todas as tags <time> (header e footer)
     html = re.sub(r'<time datetime="[\d-]+">[^<]+</time>', novo_time, html)
 
     # Banner de atualização
-    html = re.sub(r'Tabela atualizada em <strong>[\d/]+</strong>',
-                  f'Tabela atualizada em <strong>{data_atualizacao}</strong>', html)
-    html = re.sub(r'Vigência: [\d/]+', f'Vigência: {data_atualizacao}', html)
+    html = re.sub(
+        r"Tabela atualizada em <strong>[\d/]+</strong>",
+        f"Tabela atualizada em <strong>{data_br}</strong>",
+        html,
+    )
+    html = re.sub(r"Vigência: [\d/]+", f"Vigência: {data_br}", html)
 
     # Badge de contagem no header
-    html = re.sub(r'<p class="header-badge"[^>]*>\d+ itens</p>',
-                  f'<p class="header-badge" aria-label="Total de itens">{total} itens</p>', html)
+    html = re.sub(
+        r'<p class="header-badge"[^>]*>\d+ itens</p>',
+        f'<p class="header-badge" aria-label="Total de itens">{total} itens</p>',
+        html,
+    )
 
-    # Contagem no footer
-    html = re.sub(r'\d+ itens &middot; Canal Revendas &middot;',
-                  f'{total} itens &middot; Canal Revendas &middot;', html)
-    with open('index.html', 'w', encoding='utf-8') as f:
+    # Contagem no rodapé
+    html = re.sub(
+        r"\d+ itens &middot; Canal Revendas &middot;",
+        f"{total} itens &middot; Canal Revendas &middot;",
+        html,
+    )
+
+    with open("index.html", "w", encoding="utf-8") as f:
         f.write(html)
     print("✅ index.html atualizado")
 
-    # ── 3. README.md ──────────────────────────────────────────────────────
-    with open('README.md', 'r', encoding='utf-8') as f:
+
+def atualizar_readme(data_br, total):
+    """Atualiza o selo de data e a contagem de itens em README.md."""
+    with open("README.md", "r", encoding="utf-8") as f:
         readme = f.read()
-    data_enc = urllib.parse.quote(data_atualizacao, safe='')
-    readme = re.sub(r'badge/tabela-[^-]+-blue', f'badge/tabela-{data_enc}-blue', readme)
-    readme = re.sub(r'\*\*\d+ itens catalogados\*\*',
-                    f'**{total} itens catalogados**', readme)
-    readme = re.sub(r'Atualizado em [\d/]+', f'Atualizado em {data_atualizacao}', readme)
-    with open('README.md', 'w', encoding='utf-8') as f:
+
+    data_enc = urllib.parse.quote(data_br, safe="")
+    readme = re.sub(r"badge/tabela-[^-]+-blue", f"badge/tabela-{data_enc}-blue", readme)
+    readme = re.sub(r"\*\*\d+ itens catalogados\*\*", f"**{total} itens catalogados**", readme)
+    readme = re.sub(r"Atualizado em [\d/]+", f"Atualizado em {data_br}", readme)
+
+    with open("README.md", "w", encoding="utf-8") as f:
         f.write(readme)
     print("✅ README.md atualizado")
 
-    print(f"\n🎉 Concluído! Tabela de {data_atualizacao} com {total} itens publicada.")
+
+# ──────────────────────────────────────────────────────────────────────
+# FLUXO PRINCIPAL
+# ──────────────────────────────────────────────────────────────────────
+
+def main():
+    print("📋 Lendo planilha...")
+    data_br = ler_data_tabela()
+    print(f"📅 Data identificada: {data_br}")
+
+    df_rev = pd.read_excel(ARQUIVO_XLSX, sheet_name="REV", header=HEADER_REV)
+    df_acc = pd.read_excel(ARQUIVO_XLSX, sheet_name="ACESSÓRIOS REV", header=HEADER_ACC)
+
+    aparelhos  = dedup(process_sheet(df_rev, "aparelho", tem_tecnologia=True))
+    acessorios = dedup(process_sheet(df_acc, "acessorio", tem_tecnologia=False))
+    acessorios = adicionar_itens_loja(acessorios)
+
+    todos = sorted(aparelhos + acessorios, key=lambda x: x["descricao"])
+    total = len(todos)
+    data_json = json.dumps(todos, ensure_ascii=False, separators=(",", ":"))
+
+    print(f"✅ {total} itens extraídos ({len(aparelhos)} aparelhos + {len(acessorios)} acessórios)")
+
+    atualizar_script_js(data_json)
+    atualizar_index_html(data_br, total)
+    atualizar_readme(data_br, total)
+
+    print(f"\n🎉 Concluído! Tabela de {data_br} com {total} itens publicada.")
+
 
 if __name__ == "__main__":
     main()
