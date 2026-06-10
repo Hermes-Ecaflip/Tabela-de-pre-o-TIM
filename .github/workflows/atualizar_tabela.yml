@@ -1,37 +1,51 @@
 name: 🔄 Atualizar Tabela de Preços
 
+# Dispara quando a planilha for enviada ao repositório, ou manualmente
 on:
   push:
     paths:
-      - 'tabela_precos.xlsx'   # Dispara quando o xlsx for enviado ao repositório
-  workflow_dispatch:            # Permite rodar manualmente pelo GitHub
+      - 'tabela_precos.xlsx'
+  workflow_dispatch:
 
 jobs:
   atualizar-dados:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write   # Necessário para o bot commitar de volta
 
     steps:
+      # 1. Baixa o repositório
       - name: 📥 Baixar repositório
         uses: actions/checkout@v4
 
+      # 2. Configura o ambiente Python
       - name: 🐍 Configurar Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
+      # 3. Instala as bibliotecas necessárias
       - name: 📦 Instalar dependências
         run: pip install pandas openpyxl
 
-      - name: ⚙️ Processar planilha e atualizar arquivos
+      # 4. Processa a planilha e regenera script.js, index.html e README.md
+      - name: ⚙️ Processar planilha
         run: python processar_planilha.py
 
-      - name: 🚀 Publicar alterações no GitHub Pages
+      # 5. Commita e publica as alterações (se houver)
+      - name: 🚀 Publicar alterações
         run: |
           git config --global user.name  "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
+
+          # Adiciona os arquivos que o script pode ter modificado
           git add script.js index.html README.md
-          git diff --quiet && git diff --staged --quiet \
-            || git commit -m "🤖 Tabela atualizada automaticamente" \
-            && git push
+
+          # Só commita e dá push se realmente houver mudanças staged
+          if git diff --staged --quiet; then
+            echo "ℹ️  Nenhuma alteração detectada — nada a publicar."
+          else
+            git commit -m "🤖 Tabela atualizada automaticamente"
+            git push
+            echo "✅ Alterações publicadas com sucesso."
+          fi
