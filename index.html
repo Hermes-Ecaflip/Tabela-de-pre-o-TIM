@@ -16,7 +16,6 @@
   ════════════════════════════════════════════════════ -->
   <header class="site-header" role="banner">
     <div class="header-inner">
-
       <div class="brand">
         <span class="brand-logo" aria-label="TIM">TIM</span>
         <div class="brand-divider" aria-hidden="true"></div>
@@ -25,11 +24,23 @@
           <p>Tabela Revendas · Com Fidelização · <time datetime="2026-06-17">17/06/2026</time></p>
         </div>
       </div>
-
       <p class="header-badge" aria-label="Total de itens">237 itens</p>
-
     </div>
   </header>
+
+  <!-- ════════════════════════════════════════════════════
+       NAVEGAÇÃO DE MODO — Buscar vs. Catálogo
+  ════════════════════════════════════════════════════ -->
+  <nav class="mode-nav" role="tablist" aria-label="Modo de navegação">
+    <div class="mode-nav-inner">
+      <button class="mode-tab active" id="modeSearchTab" role="tab" aria-selected="true" data-mode="search">
+        🔍 Buscar Produto
+      </button>
+      <button class="mode-tab" id="modeCatalogTab" role="tab" aria-selected="false" data-mode="catalog">
+        📚 Catálogo por Plano
+      </button>
+    </div>
+  </nav>
 
   <!-- ════════════════════════════════════════════════════
        CONTEÚDO PRINCIPAL
@@ -45,99 +56,168 @@
       <p class="update-date">Vigência: 17/06/2026</p>
     </aside>
 
-    <!-- Seção de busca -->
-    <section class="search-section" aria-label="Busca de produtos">
-      <label class="field-label" for="searchInput">Buscar Aparelho ou Acessório</label>
-      <div class="search-wrapper" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-owns="searchDropdown">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <circle cx="11" cy="11" r="8"/>
-          <path d="m21 21-4.35-4.35"/>
-        </svg>
-        <input
-          type="search"
-          id="searchInput"
-          placeholder="Ex: iPhone 16, Galaxy S25, JBL Flip, PS5…"
-          autocomplete="off"
-          spellcheck="false"
-          aria-autocomplete="list"
-          aria-controls="searchDropdown"
-        >
-        <button class="search-clear" id="searchClear" aria-label="Limpar busca" hidden>✕</button>
-        <ul class="search-dropdown" id="searchDropdown" role="listbox" aria-label="Sugestões de produtos"></ul>
-      </div>
-    </section>
+    <!-- ══════════════════ MODO BUSCA ══════════════════ -->
+    <div id="modeSearch" role="tabpanel" aria-labelledby="modeSearchTab">
 
-    <!-- Seletor de planos (visível após selecionar produto) -->
-    <section class="plan-section" id="planSection" aria-label="Seleção de plano" hidden>
-      <p class="field-label">Selecionar Plano</p>
-      <nav class="plan-tabs" id="planTabs" aria-label="Grupos de planos">
-        <button class="plan-tab active" data-group="nonfid" aria-pressed="true">💰 Sem Fidelização</button>
-        <button class="plan-tab" data-group="mobile" aria-pressed="false">📱 Mobile Fidelizado</button>
-        <button class="plan-tab" data-group="fibra" aria-pressed="false">🌐 TIM Fibra</button>
-        <button class="plan-tab" data-group="casa" aria-pressed="false">🏠 TIM Casa</button>
-      </nav>
-      <div id="planGrid" role="list" aria-label="Planos disponíveis"></div>
-    </section>
+      <!-- Seção de busca -->
+      <section class="search-section" aria-label="Busca de produtos">
+        <label class="field-label" for="searchInput">Buscar Aparelho ou Acessório</label>
+        <div class="search-wrapper" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-owns="searchDropdown">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input
+            type="search"
+            id="searchInput"
+            placeholder="Ex: iPhone 16, Galaxy S25, JBL Flip, PS5…"
+            autocomplete="off"
+            spellcheck="false"
+            aria-autocomplete="list"
+            aria-controls="searchDropdown"
+          >
+          <button class="search-clear" id="searchClear" aria-label="Limpar busca" hidden>✕</button>
+          <ul class="search-dropdown" id="searchDropdown" role="listbox" aria-label="Sugestões de produtos"></ul>
+        </div>
+      </section>
 
-    <!-- Resultado da consulta (visível após selecionar produto) -->
-    <section class="result-section" id="resultSection" aria-label="Resultado da consulta" hidden>
-      <article class="product-card">
+      <!-- Seletor de planos (visível após selecionar produto) -->
+      <section class="plan-section" id="planSection" aria-label="Seleção de plano" hidden>
+        <p class="field-label">Selecionar Plano</p>
+        <nav class="plan-tabs" id="planTabs" aria-label="Grupos de planos">
+          <button class="plan-tab active" data-group="nonfid" aria-pressed="true">💰 Sem Fidelização</button>
+          <button class="plan-tab" data-group="mobile" aria-pressed="false">📱 Mobile Fidelizado</button>
+          <button class="plan-tab" data-group="fibra" aria-pressed="false">🌐 TIM Fibra</button>
+          <button class="plan-tab" data-group="casa" aria-pressed="false">🏠 TIM Casa</button>
+        </nav>
+        <div id="planGrid" role="list" aria-label="Planos disponíveis"></div>
+      </section>
 
-        <!-- Identificação do produto -->
-        <header class="product-header">
-          <div class="product-logo" id="productLogo" aria-hidden="true"></div>
-          <div class="product-info">
-            <p class="product-type" id="productType"></p>
-            <h2 class="product-name" id="productName"></h2>
-            <ul class="product-tags" id="productTags" aria-label="Características do produto"></ul>
-          </div>
-        </header>
+      <!-- Resultado da consulta -->
+      <section class="result-section" id="resultSection" aria-label="Resultado da consulta" hidden>
+        <article class="product-card">
 
-        <!-- Destaque do preço selecionado -->
-        <div class="price-spotlight" id="priceSpotlight" aria-live="polite">
-          <p class="price-empty" id="priceEmpty">Selecione um plano acima para ver o preço</p>
-
-          <div class="price-filled" id="priceFilled" hidden>
-            <div class="price-plan-info">
-              <span class="price-label">Preço no plano</span>
-              <span class="price-plan-name" id="pricePlanName"></span>
+          <header class="product-header">
+            <div class="product-logo" id="productLogo" aria-hidden="true"></div>
+            <div class="product-info">
+              <p class="product-type" id="productType"></p>
+              <h2 class="product-name" id="productName"></h2>
+              <ul class="product-tags" id="productTags" aria-label="Características do produto"></ul>
             </div>
-            <div class="price-value-row">
-              <div class="price-value-block">
-                <span class="price-currency">R$</span>
-                <span class="price-integer" id="priceInteger"></span>
-                <span class="price-decimal" id="priceDecimal"></span>
+          </header>
+
+          <!-- Controle do Boost Trade In (visível só se o produto tiver Boost) -->
+          <div class="boost-control" id="boostControl" hidden>
+            <div class="boost-info">
+              <span class="boost-label">⚡ Boost Trade In</span>
+              <span class="boost-desc" id="boostDesc">Desconto extra na troca de aparelho usado</span>
+            </div>
+            <button class="boost-toggle" id="boostToggle" role="switch" aria-checked="false">
+              <span class="boost-toggle-track"><span class="boost-toggle-thumb"></span></span>
+              <span class="boost-toggle-state" id="boostToggleState">OFF</span>
+            </button>
+          </div>
+
+          <!-- Destaque do preço selecionado -->
+          <div class="price-spotlight" id="priceSpotlight" aria-live="polite">
+            <p class="price-empty" id="priceEmpty">Selecione um plano acima para ver o preço</p>
+
+            <div class="price-filled" id="priceFilled" hidden>
+              <div class="price-plan-info">
+                <span class="price-label">Preço no plano</span>
+                <span class="price-plan-name" id="pricePlanName"></span>
               </div>
-              <p class="price-hint" id="priceHint"></p>
-              <div class="price-comparison" id="priceComparison"></div>
+              <div class="price-value-row">
+                <div class="price-value-block">
+                  <span class="price-currency">R$</span>
+                  <span class="price-integer" id="priceInteger"></span>
+                  <span class="price-decimal" id="priceDecimal"></span>
+                </div>
+                <p class="price-hint" id="priceHint"></p>
+                <div class="price-comparison" id="priceComparison"></div>
+              </div>
             </div>
           </div>
+
+          <!-- Todos os planos disponíveis -->
+          <details class="all-plans" id="allPlansDetails">
+            <summary class="all-plans-toggle">
+              <span class="all-plans-title">Todos os planos disponíveis</span>
+              <span class="all-plans-count badge" id="allPlansCount">0</span>
+              <span class="all-plans-chevron" aria-hidden="true">▼</span>
+            </summary>
+            <ul class="all-plans-grid" id="allPlansGrid" role="list"></ul>
+          </details>
+
+        </article>
+      </section>
+
+      <!-- Estado inicial vazio -->
+      <div class="empty-state" id="emptyState" aria-live="polite">
+        <span class="empty-icon" aria-hidden="true">🔍</span>
+        <h2>Busque um aparelho ou acessório</h2>
+        <p>Digite o nome para consultar os preços por plano TIM.<br>Inclui celulares, tablets e acessórios.</p>
+      </div>
+
+    </div>
+
+    <!-- ══════════════════ MODO CATÁLOGO ══════════════════ -->
+    <div id="modeCatalog" role="tabpanel" aria-labelledby="modeCatalogTab" hidden>
+
+      <!-- Filtros do catálogo -->
+      <section class="catalog-filters" aria-label="Filtros do catálogo">
+        <div class="catalog-filter-group">
+          <label class="field-label" for="catalogPlanSelect">Plano do Cliente</label>
+          <select class="catalog-select" id="catalogPlanSelect" aria-label="Selecionar plano do cliente">
+            <option value="">— Escolha o plano para ver os preços —</option>
+          </select>
         </div>
 
-        <!-- Todos os planos disponíveis (colapsável via elemento nativo) -->
-        <details class="all-plans" id="allPlansDetails">
-          <summary class="all-plans-toggle">
-            <span class="all-plans-title">Todos os planos disponíveis</span>
-            <span class="all-plans-count badge" id="allPlansCount">0</span>
-            <span class="all-plans-chevron" aria-hidden="true">▼</span>
-          </summary>
-          <ul class="all-plans-grid" id="allPlansGrid" role="list"></ul>
-        </details>
+        <div class="catalog-filter-group">
+          <label class="field-label" for="catalogTypeSelect">Tipo</label>
+          <select class="catalog-select" id="catalogTypeSelect" aria-label="Filtrar por tipo">
+            <option value="all">Todos</option>
+            <option value="aparelho">📱 Aparelhos</option>
+            <option value="acessorio">🔌 Acessórios</option>
+          </select>
+        </div>
 
-      </article>
-    </section>
+        <div class="catalog-filter-group catalog-filter-checkbox">
+          <label class="catalog-check">
+            <input type="checkbox" id="catalogBoostOnly">
+            <span>⚡ Só com Boost</span>
+          </label>
+        </div>
+      </section>
 
-    <!-- Estado inicial vazio (visível enquanto nenhum produto estiver selecionado) -->
-    <div class="empty-state" id="emptyState" aria-live="polite">
-      <span class="empty-icon" aria-hidden="true">🔍</span>
-      <h2>Busque um aparelho ou acessório</h2>
-      <p>Digite o nome para consultar os preços por plano TIM.<br>Inclui celulares, tablets e acessórios.</p>
+      <!-- Faixa de preço -->
+      <section class="catalog-price-range" aria-label="Faixa de preço">
+        <div class="field-label">Faixa de Preço <span id="catalogPriceLabel" class="price-range-value">Qualquer valor</span></div>
+        <div class="price-range-row">
+          <input type="range" id="catalogPriceMin" class="price-slider" min="0" max="16000" step="100" value="0" aria-label="Preço mínimo">
+          <input type="range" id="catalogPriceMax" class="price-slider" min="0" max="16000" step="100" value="16000" aria-label="Preço máximo">
+        </div>
+      </section>
+
+      <!-- Resumo de resultados -->
+      <p class="catalog-summary" id="catalogSummary" aria-live="polite"></p>
+
+      <!-- Grade do catálogo -->
+      <section class="catalog-grid" id="catalogGrid" aria-label="Catálogo de produtos"></section>
+
+      <!-- Estado vazio do catálogo -->
+      <div class="empty-state" id="catalogEmpty">
+        <span class="empty-icon" aria-hidden="true">📚</span>
+        <h2>Selecione o plano do cliente</h2>
+        <p>Escolha o plano acima para montar o catálogo com os preços já aplicados.<br>Depois é só filtrar por tipo, faixa de preço ou Boost.</p>
+      </div>
+
     </div>
 
   </main>
 
   <!-- ════════════════════════════════════════════════════
-       RODAPÉ — Contagem, canal e data de vigência
+       RODAPÉ
   ════════════════════════════════════════════════════ -->
   <footer class="site-footer" role="contentinfo">
     <p>

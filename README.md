@@ -34,6 +34,8 @@ Desenvolvida para uso interno de vendedores e revendedores, permitindo consultar
 | 📅 **Data de vigência** | Exibe data de atualização e validade de cada produto |
 | 💡 **Comparativo de economia** | Mostra a diferença entre o preço de balcão e o plano selecionado |
 | 📱 **100% responsivo** | Otimizado para celular, tablet, notebook e desktop |
+| ⚡ **Boost Trade In** | Ativa/desativa o desconto de troca direto no card, quando o produto tem Boost |
+| 📚 **Catálogo por plano** | Modo catálogo que lista todos os produtos com o preço já aplicado ao plano do cliente |
 
 ---
 
@@ -80,7 +82,7 @@ A tabela é atualizada semanalmente pela TIM. Para atualizar o site:
 3. O GitHub Actions detecta a mudança e roda `processar_planilha.py` automaticamente
 4. Em ~1 minuto, `script.js`, `index.html` e `README.md` são atualizados e o site entra no ar
 
-> **Nota:** A data de atualização exibida no banner do site é lida diretamente do campo `DATA INÍCIO` da planilha oficial.
+> **Nota:** A data é lida do campo `DATA INÍCIO`, os planos são detectados automaticamente, e o **Boost Trade In** é lido da aba `TRADE IN` e casado por código — tudo sem edição manual.
 
 ---
 

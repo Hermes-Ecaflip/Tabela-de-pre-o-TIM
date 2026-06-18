@@ -28,7 +28,7 @@ jobs:
       - name: 📦 Instalar dependências
         run: pip install pandas openpyxl
 
-      # 4. Processa a planilha e regenera script.js, index.html e README.md
+      # 4. Processa a planilha (planos + Boost Trade In) e regenera os arquivos
       - name: ⚙️ Processar planilha
         run: python processar_planilha.py
 

@@ -803,3 +803,394 @@ body::after {
   .plan-grid   { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
   .nonfid-grid { grid-template-columns: repeat(4, 1fr); }
 }
+
+
+/* ══════════════════════════════════════════════════════════
+   13. NAVEGAÇÃO DE MODO (Buscar / Catálogo)
+   ══════════════════════════════════════════════════════════ */
+.mode-nav {
+  position: relative;
+  z-index: 1;
+  max-width: 940px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.mode-nav-inner {
+  display: flex;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px;
+}
+
+.mode-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text3);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .18s;
+  font-family: 'DM Sans', sans-serif;
+}
+.mode-tab:hover    { color: var(--text2); }
+.mode-tab.active {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 2px 12px var(--accent-glow);
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   14. CONTROLE DO BOOST TRADE IN
+   ══════════════════════════════════════════════════════════ */
+.boost-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: linear-gradient(90deg, rgba(255, 193, 7, .08), rgba(255, 140, 66, .04));
+  border: 1.5px solid rgba(255, 193, 7, .3);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+
+.boost-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.boost-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--yellow);
+  letter-spacing: .3px;
+}
+
+.boost-desc {
+  font-size: 11.5px;
+  color: var(--text3);
+  line-height: 1.4;
+}
+
+/* Interruptor (switch) do Boost */
+.boost-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.boost-toggle-track {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  border-radius: 13px;
+  transition: background .2s, border-color .2s;
+}
+
+.boost-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: var(--text3);
+  border-radius: 50%;
+  transition: transform .2s, background .2s;
+}
+
+.boost-toggle-state {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: .5px;
+  min-width: 26px;
+  text-align: left;
+}
+
+/* Estado ATIVADO */
+.boost-toggle[aria-checked="true"] .boost-toggle-track {
+  background: rgba(255, 193, 7, .25);
+  border-color: var(--yellow);
+}
+.boost-toggle[aria-checked="true"] .boost-toggle-thumb {
+  transform: translateX(20px);
+  background: var(--yellow);
+}
+.boost-toggle[aria-checked="true"] .boost-toggle-state {
+  color: var(--yellow);
+}
+
+/* Linha de desconto Boost dentro do spotlight */
+.price-boost-applied {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 193, 7, .1);
+  border: 1px solid rgba(255, 193, 7, .3);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--yellow);
+  margin-top: 8px;
+}
+
+/* Selo de Boost nas tags do produto e cards do catálogo */
+.tag-boost,
+.product-tag--boost {
+  background: rgba(255, 193, 7, .1);
+  color: var(--yellow);
+  border-color: rgba(255, 193, 7, .3);
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   15. CATÁLOGO POR PLANO
+   ══════════════════════════════════════════════════════════ */
+
+/* Filtros */
+.catalog-filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr auto;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 14px;
+  align-items: end;
+}
+
+.catalog-filter-group { min-width: 0; }
+
+.catalog-select {
+  width: 100%;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color .2s;
+}
+.catalog-select:focus { border-color: var(--accent); }
+
+.catalog-filter-checkbox { display: flex; align-items: center; }
+
+.catalog-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+  white-space: nowrap;
+  padding: 11px 0;
+}
+.catalog-check input { width: 16px; height: 16px; cursor: pointer; accent-color: var(--yellow); }
+
+/* Faixa de preço */
+.catalog-price-range {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+
+.price-range-value {
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.price-range-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 24px;
+  margin-top: 8px;
+}
+
+.price-slider {
+  position: absolute;
+  width: 100%;
+  background: transparent;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.price-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+  cursor: pointer;
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+.price-slider::-moz-range-thumb {
+  pointer-events: auto;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg);
+  cursor: pointer;
+}
+.price-range-row::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 4px;
+  background: var(--surface3);
+  border-radius: 2px;
+}
+
+/* Resumo */
+.catalog-summary {
+  font-size: 13px;
+  color: var(--text3);
+  margin-bottom: 14px;
+  padding: 0 2px;
+}
+.catalog-summary strong { color: var(--text2); }
+
+/* Grade de produtos */
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+/* Cartão do catálogo */
+.catalog-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color .18s, transform .18s;
+}
+.catalog-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+
+.catalog-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.catalog-card-logo {
+  width: 44px; height: 44px;
+  background: white;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 6px;
+  overflow: hidden;
+}
+.catalog-card-logo svg { width: 100%; height: 100%; object-fit: contain; }
+.catalog-card-logo.icon-only { background: var(--surface2); border: 1px solid var(--border); font-size: 20px; }
+
+.catalog-card-title { flex: 1; min-width: 0; }
+.catalog-card-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+.catalog-card-cat {
+  font-size: 10.5px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+
+.catalog-card-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.catalog-card-price {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+.catalog-card-price-label {
+  font-size: 10px;
+  color: var(--text3);
+  margin-right: auto;
+  align-self: center;
+}
+.catalog-card-currency { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; color: var(--text3); }
+.catalog-card-value {
+  font-family: 'Inter', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--green);
+  letter-spacing: -.5px;
+  font-variant-numeric: tabular-nums;
+}
+.catalog-card-cents { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; color: var(--text2); }
+
+/* Linha de Boost no card do catálogo */
+.catalog-card-boost {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--yellow);
+  background: rgba(255, 193, 7, .08);
+  border-radius: 6px;
+  padding: 5px 9px;
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   16. RESPONSIVIDADE — modos Boost e Catálogo
+   ══════════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+  .mode-nav { padding: 0 14px; }
+  .catalog-filters { grid-template-columns: 1fr; gap: 14px; }
+  .catalog-grid { grid-template-columns: 1fr 1fr; }
+  .boost-control { flex-direction: row; align-items: center; padding: 12px 14px; }
+  .boost-desc { display: none; }
+}
+
+@media (max-width: 380px) {
+  .catalog-grid { grid-template-columns: 1fr; }
+}
+
+@media (min-width: 1200px) {
+  .mode-nav { max-width: 1100px; }
+  .catalog-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+}

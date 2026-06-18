@@ -4,16 +4,19 @@
 ═══════════════════════════════════════════════════════════════════════
 
  Lê a planilha `tabela_precos.xlsx`, extrai aparelhos e acessórios de
- todas as colunas de plano e atualiza automaticamente:
+ todas as colunas de plano (mais o Boost Trade In da aba TRADE IN) e
+ atualiza automaticamente:
 
-   • script.js   → array DATA com todos os produtos
+   • script.js   → array DATA com todos os produtos (inclui campo "boost")
    • index.html  → data de vigência e contagem de itens
    • README.md   → selo de data e contagem de itens
 
- IMPORTANTE: as colunas de plano são DETECTADAS automaticamente entre as
- colunas-âncora "PÓS PAGO NÃO FIDELIZADO" e "DATA FIM DA OFERTA". Assim,
- se a TIM adicionar ou remover um plano, o script se adapta sozinho — sem
- necessidade de editar nenhuma lista fixa.
+ DETECÇÃO AUTOMÁTICA:
+   - As colunas de plano são detectadas entre as âncoras "PÓS PAGO NÃO
+     FIDELIZADO" e "DATA FIM DA OFERTA". Novos planos são captados sozinhos.
+   - O Boost Trade In é lido da coluna "BOOST TRADE IN" na aba TRADE IN e
+     casado por CÓDIGO com aparelhos/acessórios. Se a TIM mudar os valores
+     de Boost ou adicionar produtos, tudo é atualizado automaticamente.
 
  Uso:  python processar_planilha.py
 ═══════════════════════════════════════════════════════════════════════
@@ -35,11 +38,11 @@ import pandas as pd
 ARQUIVO_XLSX = "tabela_precos.xlsx"
 
 # Cabeçalhos (linha onde começam os títulos das colunas) de cada aba
-HEADER_REV = 11   # aba "REV" (aparelhos)
-HEADER_ACC = 6    # aba "ACESSÓRIOS REV" (acessórios)
+HEADER_REV   = 11   # aba "REV" (aparelhos)
+HEADER_ACC   = 6    # aba "ACESSÓRIOS REV" (acessórios)
+HEADER_TRADE = 11   # aba "TRADE IN" (boost)
 
-# Colunas-âncora que delimitam o intervalo de planos.
-# Tudo que estiver ENTRE elas é tratado como uma coluna de plano.
+# Colunas-âncora que delimitam o intervalo de planos
 ANCORA_INICIO = "PÓS PAGO NÃO FIDELIZADO - VIDE ABA DE REGRAS"
 ANCORA_FIM = "DATA FIM DA OFERTA"
 
@@ -54,6 +57,7 @@ COL_CTRL_NF     = "CONTROLE NÃO FIDELIZADO - TODOS\n(Fatura / Express)"
 COL_POS_NF      = "PÓS PAGO NÃO FIDELIZADO - VIDE ABA DE REGRAS"
 COL_DATA_FIM    = "DATA FIM DA OFERTA"
 COL_TECNOLOGIA  = "TECNOLOGIA"
+COL_BOOST       = "BOOST TRADE IN"   # coluna do Boost na aba TRADE IN
 
 # Acessórios fixos da loja (não constam na planilha oficial da TIM)
 LOJA_ITEMS = [
@@ -88,37 +92,63 @@ def clean_str(val):
 
 def detectar_colunas_de_plano(df):
     """
-    Detecta dinamicamente as colunas de plano de um DataFrame.
-
-    Retorna a lista de nomes de coluna situados ENTRE a âncora de início
-    e a âncora de fim. Dessa forma, novos planos adicionados pela TIM são
-    capturados automaticamente.
+    Detecta dinamicamente as colunas de plano de um DataFrame, situadas
+    ENTRE a âncora de início e a âncora de fim. Novos planos adicionados
+    pela TIM são captados automaticamente.
     """
     colunas = list(df.columns)
     nomes_norm = [str(c).strip() for c in colunas]
-
     try:
         idx_inicio = nomes_norm.index(ANCORA_INICIO) + 1
     except ValueError:
         print(f"⚠️  Âncora de início não encontrada: {ANCORA_INICIO!r}")
         return []
-
-    # A âncora de fim pode não existir em todas as abas; nesse caso vai até o fim
     try:
         idx_fim = nomes_norm.index(ANCORA_FIM)
     except ValueError:
         idx_fim = len(colunas)
-
     plano_cols = colunas[idx_inicio:idx_fim]
-    # Remove colunas vazias ou "Unnamed" geradas pelo pandas
     return [c for c in plano_cols if not str(c).startswith("Unnamed") and str(c).strip()]
+
+
+# ──────────────────────────────────────────────────────────────────────
+# BOOST TRADE IN
+# ──────────────────────────────────────────────────────────────────────
+
+def carregar_boost():
+    """
+    Lê a aba TRADE IN e devolve um dicionário {código: valor_boost}.
+
+    Quando há variantes do mesmo código (cores diferentes), mantém o maior
+    valor de Boost. Se a aba não existir ou a coluna mudar, retorna {} sem
+    quebrar o restante do processamento.
+    """
+    try:
+        df = pd.read_excel(ARQUIVO_XLSX, sheet_name="TRADE IN", header=HEADER_TRADE)
+    except Exception as e:
+        print(f"⚠️  Não foi possível ler a aba TRADE IN: {e}")
+        return {}
+
+    if COL_BOOST not in df.columns:
+        print(f"⚠️  Coluna {COL_BOOST!r} não encontrada na aba TRADE IN.")
+        return {}
+
+    boost = {}
+    for _, row in df.iterrows():
+        codigo = clean_str(row.get(COL_CODIGO, ""))
+        if not codigo or codigo in ("nan", "0"):
+            continue
+        valor = clean_val(row.get(COL_BOOST))
+        if valor:
+            boost[codigo] = max(boost.get(codigo, 0), valor)
+    return boost
 
 
 # ──────────────────────────────────────────────────────────────────────
 # EXTRAÇÃO DOS PRODUTOS
 # ──────────────────────────────────────────────────────────────────────
 
-def process_sheet(df, tipo, tem_tecnologia):
+def process_sheet(df, tipo, tem_tecnologia, boost_map):
     """
     Extrai todos os produtos de uma aba.
 
@@ -126,9 +156,7 @@ def process_sheet(df, tipo, tem_tecnologia):
         df: DataFrame da aba.
         tipo: 'aparelho' ou 'acessorio'.
         tem_tecnologia: se a aba possui coluna TECNOLOGIA.
-
-    Returns:
-        Lista de dicionários de produto.
+        boost_map: dicionário {código: valor_boost} vindo da aba TRADE IN.
     """
     plano_cols = detectar_colunas_de_plano(df)
     print(f"   • {len(plano_cols)} colunas de plano detectadas em '{tipo}'")
@@ -137,12 +165,9 @@ def process_sheet(df, tipo, tem_tecnologia):
     for _, row in df.iterrows():
         codigo = clean_str(row.get(COL_CODIGO, ""))
         descricao = clean_str(row.get(COL_DESCRICAO, ""))
-
-        # Ignora linhas sem código ou descrição válidos
         if not codigo or codigo in ("nan", "0") or not descricao or descricao == "nan":
             continue
 
-        # Monta o dicionário de planos (apenas com preço válido)
         planos = {}
         for col in plano_cols:
             preco = clean_val(row.get(col))
@@ -162,16 +187,17 @@ def process_sheet(df, tipo, tem_tecnologia):
             "tecnologia":       clean_str(row.get(COL_TECNOLOGIA, "")) if tem_tecnologia else "",
             "tipo":             tipo,
             "planos":           planos,
+            "boost":            boost_map.get(codigo),   # ← Boost casado por código
             "variants":         [clean_str(row.get(COL_DESC_SAP, ""))],
         })
-
     return produtos
 
 
 def dedup(produtos):
     """
     Agrupa produtos com a mesma descrição (variantes de cor) em um só item,
-    mantendo o menor preço de cada plano e de cada campo sem fidelização.
+    mantendo o menor preço de cada plano/campo e o maior Boost entre as
+    variantes.
     """
     grupos = defaultdict(list)
     for p in produtos:
@@ -181,17 +207,19 @@ def dedup(produtos):
     for itens in grupos.values():
         base = itens[0].copy()
 
-        # Menor preço de cada plano entre as variantes
         planos_merged = {}
         for item in itens:
             for plano, preco in item["planos"].items():
                 if plano not in planos_merged or preco < planos_merged[plano]:
                     planos_merged[plano] = preco
 
-        # Menor preço dos campos sem fidelização
         for campo in ["base_retail", "controle_nao_fid", "pos_nao_fid", "pre"]:
             valores = [i[campo] for i in itens if i.get(campo) is not None]
             base[campo] = min(valores) if valores else None
+
+        # Boost: maior valor entre as variantes
+        boosts = [i["boost"] for i in itens if i.get("boost")]
+        base["boost"] = max(boosts) if boosts else None
 
         base["planos"] = planos_merged
         base["variants"] = list({i["descricao_sap"] for i in itens if i.get("descricao_sap")})
@@ -210,7 +238,7 @@ def adicionar_itens_loja(acessorios):
                 "categoria": cat, "pre": preco, "base_retail": None,
                 "controle_nao_fid": None, "pos_nao_fid": None,
                 "data_fim": "", "tecnologia": "", "tipo": "acessorio",
-                "planos": {}, "variants": [],
+                "planos": {}, "boost": None, "variants": [],
             })
     return acessorios
 
@@ -246,9 +274,7 @@ def atualizar_script_js(data_json):
     conteudo = re.sub(
         r"const DATA = \[.*?\];",
         f"const DATA = {data_json};",
-        conteudo,
-        flags=re.DOTALL,
-        count=1,
+        conteudo, flags=re.DOTALL, count=1,
     )
     with open("script.js", "w", encoding="utf-8") as f:
         f.write(conteudo)
@@ -260,34 +286,17 @@ def atualizar_index_html(data_br, total):
     with open("index.html", "r", encoding="utf-8") as f:
         html = f.read()
 
-    # Data em formato ISO para o atributo datetime das tags <time>
     data_iso = f"{data_br[6:]}-{data_br[3:5]}-{data_br[:2]}"
     novo_time = f'<time datetime="{data_iso}">{data_br}</time>'
-
-    # Todas as tags <time> (header e footer)
     html = re.sub(r'<time datetime="[\d-]+">[^<]+</time>', novo_time, html)
 
-    # Banner de atualização
-    html = re.sub(
-        r"Tabela atualizada em <strong>[\d/]+</strong>",
-        f"Tabela atualizada em <strong>{data_br}</strong>",
-        html,
-    )
+    html = re.sub(r"Tabela atualizada em <strong>[\d/]+</strong>",
+                  f"Tabela atualizada em <strong>{data_br}</strong>", html)
     html = re.sub(r"Vigência: [\d/]+", f"Vigência: {data_br}", html)
-
-    # Badge de contagem no header
-    html = re.sub(
-        r'<p class="header-badge"[^>]*>\d+ itens</p>',
-        f'<p class="header-badge" aria-label="Total de itens">{total} itens</p>',
-        html,
-    )
-
-    # Contagem no rodapé
-    html = re.sub(
-        r"\d+ itens &middot; Canal Revendas &middot;",
-        f"{total} itens &middot; Canal Revendas &middot;",
-        html,
-    )
+    html = re.sub(r'<p class="header-badge"[^>]*>\d+ itens</p>',
+                  f'<p class="header-badge" aria-label="Total de itens">{total} itens</p>', html)
+    html = re.sub(r"\d+ itens &middot; Canal Revendas &middot;",
+                  f"{total} itens &middot; Canal Revendas &middot;", html)
 
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html)
@@ -318,18 +327,24 @@ def main():
     data_br = ler_data_tabela()
     print(f"📅 Data identificada: {data_br}")
 
+    # Carrega o mapa de Boost da aba TRADE IN
+    boost_map = carregar_boost()
+    print(f"⚡ {len(boost_map)} códigos com Boost Trade In")
+
     df_rev = pd.read_excel(ARQUIVO_XLSX, sheet_name="REV", header=HEADER_REV)
     df_acc = pd.read_excel(ARQUIVO_XLSX, sheet_name="ACESSÓRIOS REV", header=HEADER_ACC)
 
-    aparelhos  = dedup(process_sheet(df_rev, "aparelho", tem_tecnologia=True))
-    acessorios = dedup(process_sheet(df_acc, "acessorio", tem_tecnologia=False))
+    aparelhos  = dedup(process_sheet(df_rev, "aparelho",  tem_tecnologia=True,  boost_map=boost_map))
+    acessorios = dedup(process_sheet(df_acc, "acessorio", tem_tecnologia=False, boost_map=boost_map))
     acessorios = adicionar_itens_loja(acessorios)
 
     todos = sorted(aparelhos + acessorios, key=lambda x: x["descricao"])
     total = len(todos)
+    com_boost = sum(1 for p in todos if p.get("boost"))
     data_json = json.dumps(todos, ensure_ascii=False, separators=(",", ":"))
 
     print(f"✅ {total} itens extraídos ({len(aparelhos)} aparelhos + {len(acessorios)} acessórios)")
+    print(f"⚡ {com_boost} itens com Boost ativável no site")
 
     atualizar_script_js(data_json)
     atualizar_index_html(data_br, total)
