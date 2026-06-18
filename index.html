@@ -88,7 +88,6 @@
           <button class="plan-tab active" data-group="nonfid" aria-pressed="true">💰 Sem Fidelização</button>
           <button class="plan-tab" data-group="mobile" aria-pressed="false">📱 Mobile Fidelizado</button>
           <button class="plan-tab" data-group="fibra" aria-pressed="false">🌐 TIM Fibra</button>
-          <button class="plan-tab" data-group="casa" aria-pressed="false">🏠 TIM Casa</button>
         </nav>
         <div id="planGrid" role="list" aria-label="Planos disponíveis"></div>
       </section>
@@ -182,6 +181,13 @@
           </select>
         </div>
 
+        <div class="catalog-filter-group">
+          <label class="field-label" for="catalogBrandSelect">Marca</label>
+          <select class="catalog-select" id="catalogBrandSelect" aria-label="Filtrar por marca">
+            <option value="all">Todas as marcas</option>
+          </select>
+        </div>
+
         <div class="catalog-filter-group catalog-filter-checkbox">
           <label class="catalog-check">
             <input type="checkbox" id="catalogBoostOnly">
@@ -190,12 +196,20 @@
         </div>
       </section>
 
-      <!-- Faixa de preço -->
+      <!-- Faixa de preço (digitável) -->
       <section class="catalog-price-range" aria-label="Faixa de preço">
-        <div class="field-label">Faixa de Preço <span id="catalogPriceLabel" class="price-range-value">Qualquer valor</span></div>
-        <div class="price-range-row">
-          <input type="range" id="catalogPriceMin" class="price-slider" min="0" max="16000" step="100" value="0" aria-label="Preço mínimo">
-          <input type="range" id="catalogPriceMax" class="price-slider" min="0" max="16000" step="100" value="16000" aria-label="Preço máximo">
+        <div class="field-label">Faixa de Preço (R$)</div>
+        <div class="price-input-row">
+          <div class="price-input-group">
+            <span class="price-input-prefix">de</span>
+            <input type="number" id="catalogPriceMin" class="price-input" min="0" step="50" placeholder="0" inputmode="numeric" aria-label="Preço mínimo">
+          </div>
+          <span class="price-input-sep">—</span>
+          <div class="price-input-group">
+            <span class="price-input-prefix">até</span>
+            <input type="number" id="catalogPriceMax" class="price-input" min="0" step="50" placeholder="sem limite" inputmode="numeric" aria-label="Preço máximo">
+          </div>
+          <button class="price-input-clear" id="catalogPriceClear" type="button">Limpar</button>
         </div>
       </section>
 

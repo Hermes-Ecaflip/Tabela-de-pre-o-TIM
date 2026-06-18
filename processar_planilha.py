@@ -69,6 +69,10 @@ LOJA_ITEMS = [
     ("CAIXINHA MINI LEHMOX",         "ACESSÓRIOS LOJA", 59.00),
 ]
 
+# Planos que NÃO devem ir para o site (TIM Casa: fixo + internet domiciliar).
+# Qualquer coluna de plano cujo nome contenha um destes termos é ignorada.
+PLANOS_EXCLUIDOS = ("FIXO", "LIVE INTERNET")
+
 
 # ──────────────────────────────────────────────────────────────────────
 # FUNÇÕES AUXILIARES DE LIMPEZA
@@ -108,7 +112,16 @@ def detectar_colunas_de_plano(df):
     except ValueError:
         idx_fim = len(colunas)
     plano_cols = colunas[idx_inicio:idx_fim]
-    return [c for c in plano_cols if not str(c).startswith("Unnamed") and str(c).strip()]
+    resultado = []
+    for c in plano_cols:
+        nome = str(c).strip()
+        if nome.startswith("Unnamed") or not nome:
+            continue
+        # Ignora planos TIM Casa (fixo / internet domiciliar)
+        if any(termo in nome.upper() for termo in PLANOS_EXCLUIDOS):
+            continue
+        resultado.append(c)
+    return resultado
 
 
 # ──────────────────────────────────────────────────────────────────────

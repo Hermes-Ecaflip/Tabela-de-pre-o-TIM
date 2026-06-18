@@ -29,13 +29,13 @@ Desenvolvida para uso interno de vendedores e revendedores, permitindo consultar
 | 🔍 **Busca em tempo real** | Pesquisa instantânea por nome do aparelho ou acessório |
 | 📱 **237 itens catalogados** | Celulares, tablets, acessórios TIM e itens de loja |
 | 💰 **Preços sem fidelização** | PRÉ (balcão), Base Faturamento, Controle e Pós não fidelizados |
-| 📋 **Planos fidelizados** | Mobile, TIM Fibra e TIM Casa com todos os subplanos |
+| 📋 **Planos fidelizados** | Mobile (celular) e TIM Fibra (internet), com todos os subplanos |
 | 🏷️ **Logos das marcas** | Apple, Samsung, Motorola, Xiaomi, Nokia, JBL, Sony, PlayStation, Xbox e mais |
 | 📅 **Data de vigência** | Exibe data de atualização e validade de cada produto |
 | 💡 **Comparativo de economia** | Mostra a diferença entre o preço de balcão e o plano selecionado |
 | 📱 **100% responsivo** | Otimizado para celular, tablet, notebook e desktop |
 | ⚡ **Boost Trade In** | Ativa/desativa o desconto de troca direto no card, quando o produto tem Boost |
-| 📚 **Catálogo por plano** | Modo catálogo que lista todos os produtos com o preço já aplicado ao plano do cliente |
+| 📚 **Catálogo por plano** | Lista os produtos com o preço já aplicado ao plano do cliente, com filtros de marca, tipo e faixa de preço digitável |
 
 ---
 
@@ -131,7 +131,7 @@ Tabela-de-preco-da-TIM/
 </details>
 
 <details>
-<summary><strong>📱 Mobile Fidelizado</strong></summary>
+<summary><strong>📱 Mobile / Celular (Fidelizado)</strong></summary>
 
 - TIM Controle / Plus / Premium / Smart / Redes Sociais
 - TIM Black / Plus / Premium
@@ -141,19 +141,13 @@ Tabela-de-preco-da-TIM/
 </details>
 
 <details>
-<summary><strong>🌐 TIM Fibra</strong></summary>
+<summary><strong>🌐 Fibra / Internet</strong></summary>
 
 - TIM Fibra 300M, 400M, 500M, 600M, 1GB, 2GB (diversas variações)
 
 </details>
 
-<details>
-<summary><strong>🏠 TIM Casa</strong></summary>
 
-- TIM Fixo Local / Brasil / LDI Total Plus
-- TIM Live Internet 30GB / 50GB / 80GB (com e sem fidelização)
-
-</details>
 
 ---
 
