@@ -45,6 +45,10 @@
   padding: 0;
 }
 
+/* Garante que o atributo `hidden` sempre esconda o elemento,
+   mesmo quando há display:flex/grid definido na classe. */
+[hidden] { display: none !important; }
+
 html {
   scroll-behavior: smooth;
 }
@@ -782,17 +786,22 @@ body::after {
   .site-footer  { padding: 0 14px 40px; }
   .header-badge { display: none; }
   .search-section, .plan-section, .product-card { padding: 16px; }
-  .plan-grid        { grid-template-columns: 1fr 1fr; }
-  .nonfid-grid      { grid-template-columns: 1fr 1fr; }
+  .plan-grid        { grid-template-columns: 1fr; }
+  .nonfid-grid      { grid-template-columns: 1fr; }
   .all-plans-grid   { grid-template-columns: 1fr; }
   .price-value-row  { gap: 14px; }
   .price-comparison { align-items: flex-start; }
   .update-date      { display: none; }
+  /* Cards de plano: nome e preço lado a lado com respiro */
+  .plan-card        { min-height: 46px; padding: 12px 14px; }
+  .plan-card__name  { font-size: 13px; }
+  .plan-card__price { font-size: 15px; }
 }
 
-/* Telas muito pequenas */
-@media (max-width: 380px) {
-  .nonfid-grid { grid-template-columns: 1fr; }
+/* Tablets / telas médias: 2 colunas */
+@media (min-width: 601px) and (max-width: 900px) {
+  .plan-grid   { grid-template-columns: 1fr 1fr; }
+  .nonfid-grid { grid-template-columns: 1fr 1fr; }
 }
 
 /* Desktop largo */
@@ -1191,10 +1200,11 @@ body::after {
    ══════════════════════════════════════════════════════════ */
 @media (max-width: 600px) {
   .mode-nav { padding: 0 14px; }
+  .mode-tab { font-size: 13px; padding: 11px 10px; }
   .catalog-filters { grid-template-columns: 1fr; gap: 14px; }
   .catalog-grid { grid-template-columns: 1fr 1fr; }
-  .boost-control { flex-direction: row; align-items: center; padding: 12px 14px; }
-  .boost-desc { display: none; }
+  .boost-control { padding: 12px 14px; gap: 12px; }
+  .boost-desc { font-size: 10.5px; }
   .price-input { width: 100%; }
   .price-input-group { flex: 1; }
   .price-input-clear { margin-left: 0; width: 100%; }
