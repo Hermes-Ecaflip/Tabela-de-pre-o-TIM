@@ -94,6 +94,20 @@ def clean_str(val):
     return str(val).strip() if pd.notna(val) else ""
 
 
+def clean_codigo(val):
+    """
+    Normaliza um código de produto para casamento consistente entre abas.
+
+    O pandas às vezes lê o código como float (ex: '4017240.0') e às vezes
+    como int (ex: '4017240'), dependendo da aba. Esta função remove o
+    sufixo '.0' para que o match por código (ex: Boost) funcione sempre.
+    """
+    s = str(val).strip() if pd.notna(val) else ""
+    if s.endswith(".0"):
+        s = s[:-2]
+    return s
+
+
 def detectar_colunas_de_plano(df):
     """
     Detecta dinamicamente as colunas de plano de um DataFrame, situadas
@@ -148,7 +162,7 @@ def carregar_boost():
 
     boost = {}
     for _, row in df.iterrows():
-        codigo = clean_str(row.get(COL_CODIGO, ""))
+        codigo = clean_codigo(row.get(COL_CODIGO, ""))
         if not codigo or codigo in ("nan", "0"):
             continue
         valor = clean_val(row.get(COL_BOOST))
@@ -176,7 +190,7 @@ def process_sheet(df, tipo, tem_tecnologia, boost_map):
 
     produtos = []
     for _, row in df.iterrows():
-        codigo = clean_str(row.get(COL_CODIGO, ""))
+        codigo = clean_codigo(row.get(COL_CODIGO, ""))
         descricao = clean_str(row.get(COL_DESCRICAO, ""))
         if not codigo or codigo in ("nan", "0") or not descricao or descricao == "nan":
             continue
