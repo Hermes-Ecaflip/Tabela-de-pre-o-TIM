@@ -67,6 +67,21 @@ LOJA_ITEMS = [
     ("CABO C 2M IMENSO",             "ACESSÓRIOS LOJA", 49.00),
     ("POWERBANK 10000MAH",           "ACESSÓRIOS LOJA", 99.00),
     ("CAIXINHA MINI LEHMOX",         "ACESSÓRIOS LOJA", 59.00),
+    ("FONE IMENSO SEM FIO",                              "ACESSÓRIOS LOJA", 149.00),
+    ("BATERIA KAPBOM 10000MAH",                          "ACESSÓRIOS LOJA", 99.00),
+    ("CORDAO UNIVERSAL GEONAV",                          "ACESSÓRIOS LOJA", 99.00),
+    ("BATERIA ULTRA POWER BANK BRANCO 10.000 MHA AMET",  "ACESSÓRIOS LOJA", 219.00),
+    ("POWER BANK INDUÇÃO 10 MAH CINZA AMET",             "ACESSÓRIOS LOJA", 419.00),
+    ("BATERIA ULTRA POWER BANK PRETO 10.000 MHA AMET",   "ACESSÓRIOS LOJA", 219.00),
+    ("SOUND LINK TIPO C PRETO AMET",                     "ACESSÓRIOS LOJA", 69.00),
+    ("FONE AMET SOUND PRO BRANCO",                       "ACESSÓRIOS LOJA", 249.90),
+    ("CARREGADOR 33W AMET",                              "ACESSÓRIOS LOJA", 149.00),
+    ("CARREGADOR VEICULAR 30W AMET",                     "ACESSÓRIOS LOJA", 89.00),
+    ("SOUND GO PRETO AMET",                              "ACESSÓRIOS LOJA", 189.00),
+    ("SOUND MAX PRETO AMET",                             "ACESSÓRIOS LOJA", 259.00),
+    ("HEADPHONE AMET SOUND WAVE",                        "ACESSÓRIOS LOJA", 499.90),
+    ("POWER BANK 5.000 MAH PRETO AMET",                  "ACESSÓRIOS LOJA", 139.00),
+    ("POWER BANK 5.000 MAH BRANCO AMET",                 "ACESSÓRIOS LOJA", 139.00),
 ]
 
 # Planos que NÃO devem ir para o site (TIM Casa: fixo + internet domiciliar).
