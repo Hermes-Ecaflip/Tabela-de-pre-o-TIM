@@ -94,11 +94,26 @@ PLANOS_EXCLUIDOS = ("FIXO", "LIVE INTERNET")
 # ──────────────────────────────────────────────────────────────────────
 
 def clean_val(val):
-    """Converte um valor de célula em float positivo, ou None se inválido."""
+    """
+    Converte um valor de célula em float positivo, ou None se inválido.
+
+    Trata tanto números nativos (int/float) quanto strings em formato
+    brasileiro com separador de milhar e vírgula decimal (ex: "1.234,56").
+    """
     if pd.isna(val):
         return None
+    # Números nativos passam direto
+    if isinstance(val, (int, float)):
+        return float(val) if val > 0 else None
+    # Strings: remove separador de milhar e troca vírgula decimal por ponto
+    texto = str(val).strip()
+    if not texto:
+        return None
+    # Se tem vírgula, assume formato BR: ponto = milhar, vírgula = decimal
+    if "," in texto:
+        texto = texto.replace(".", "").replace(",", ".")
     try:
-        numero = float(str(val).replace(",", "."))
+        numero = float(texto)
         return numero if numero > 0 else None
     except (ValueError, TypeError):
         return None
