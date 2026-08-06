@@ -6,7 +6,7 @@
 Atualizado semanalmente conforme tabela oficial do canal Revendas.
 
 [![Status](https://img.shields.io/badge/status-ativo-brightgreen?style=flat-square)](https://hermes-ecaflip.github.io/Tabela-de-preco-da-TIM/)
-[![Última atualização](https://img.shields.io/badge/tabela-29%2F07%2F2026-blue?style=flat-square)](https://hermes-ecaflip.github.io/Tabela-de-preco-da-TIM/)
+[![Última atualização](https://img.shields.io/badge/tabela-05%2F08%2F2026-blue?style=flat-square)](https://hermes-ecaflip.github.io/Tabela-de-preco-da-TIM/)
 [![Canal](https://img.shields.io/badge/canal-Revendas-orange?style=flat-square)](https://hermes-ecaflip.github.io/Tabela-de-preco-da-TIM/)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-lightgrey?style=flat-square)](LICENSE)
 
@@ -164,5 +164,5 @@ Distribuído sob a licença MIT. Consulte o arquivo [LICENSE](LICENSE) para mais
 ---
 
 <div align="center">
-  <sub>Mantido por revendedor credenciado TIM · Atualizado em 29/07/2026</sub>
+  <sub>Mantido por revendedor credenciado TIM · Atualizado em 05/08/2026</sub>
 </div>
