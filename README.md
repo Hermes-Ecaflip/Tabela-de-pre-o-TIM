@@ -6,7 +6,7 @@
 Atualizado semanalmente conforme tabela oficial do canal Revendas.
 
 [![Status](https://img.shields.io/badge/status-ativo-brightgreen?style=flat-square)](https://hermes-ecaflip.github.io/Tabela-de-preco-da-TIM/)
-[![Última atualização](https://img.shields.io/badge/tabela-20%2F08%2F2026-blue?style=flat-square)](https://hermes-ecaflip.github.io/Tabela-de-preco-da-TIM/)
+[![Última atualização](https://img.shields.io/badge/tabela-21%2F08%2F2026-blue?style=flat-square)](https://hermes-ecaflip.github.io/Tabela-de-preco-da-TIM/)
 [![Canal](https://img.shields.io/badge/canal-Revendas-orange?style=flat-square)](https://hermes-ecaflip.github.io/Tabela-de-preco-da-TIM/)
 [![Licença](https://img.shields.io/badge/licen%C3%A7a-MIT-lightgrey?style=flat-square)](LICENSE)
 
@@ -27,7 +27,7 @@ Desenvolvida para uso interno de vendedores e revendedores, permitindo consultar
 | Funcionalidade | Descrição |
 |---|---|
 | 🔍 **Busca em tempo real** | Pesquisa instantânea por nome do aparelho ou acessório |
-| 📱 **266 itens catalogados** | Celulares, tablets, acessórios TIM e itens de loja |
+| 📱 **274 itens catalogados** | Celulares, tablets, acessórios TIM e itens de loja |
 | 💰 **Preços sem fidelização** | PRÉ (balcão), Base Faturamento, Controle e Pós não fidelizados |
 | 📋 **Planos fidelizados** | Mobile (celular) e TIM Fibra (internet), com todos os subplanos |
 | 🏷️ **Logos das marcas** | Apple, Samsung, Motorola, Xiaomi, Nokia, JBL, Sony, PlayStation, Xbox e mais |
@@ -164,5 +164,5 @@ Distribuído sob a licença MIT. Consulte o arquivo [LICENSE](LICENSE) para mais
 ---
 
 <div align="center">
-  <sub>Mantido por revendedor credenciado TIM · Atualizado em 20/08/2026</sub>
+  <sub>Mantido por revendedor credenciado TIM · Atualizado em 21/08/2026</sub>
 </div>
