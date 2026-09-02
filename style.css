@@ -14,7 +14,7 @@
   --green-100: #d9f5eb;
   --amber-700: #946200;
   --amber-100: #fff1c2;
-  --ink-950: #FFCBDB;
+  --ink-950: #111827;
   --ink-800: #26364f;
   --ink-650: #4b5d77;
   --ink-500: #6b7c93;
@@ -22,7 +22,7 @@
   --line-strong: #bdcadc;
   --surface: #fff;
   --surface-soft: #f7f9fc;
-  --page: #FFCBDB;
+  --page: #eef3f9;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 18px;
@@ -30,6 +30,33 @@
   --shadow-md: 0 12px 34px rgba(6,20,54,.1);
   --shadow-focus: 0 0 0 4px rgba(8,116,249,.18);
   --content: 1240px;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --blue-700: #8db9ff;
+  --blue-600: #4f91ff;
+  --blue-500: #6aa5ff;
+  --blue-100: #1a3f78;
+  --blue-50: #112b52;
+  --red-600: #ff7893;
+  --red-500: #ff4168;
+  --green-700: #78e6c2;
+  --green-100: #153e35;
+  --amber-700: #ffd477;
+  --amber-100: #45371a;
+  --ink-950: #f4f7fc;
+  --ink-800: #dce5f4;
+  --ink-650: #b8c5d9;
+  --ink-500: #95a4bb;
+  --line: #2b3a55;
+  --line-strong: #40516e;
+  --surface: #111c30;
+  --surface-soft: #17253c;
+  --page: #08111f;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.24), 0 5px 18px rgba(0,0,0,.16);
+  --shadow-md: 0 14px 38px rgba(0,0,0,.35);
+  --shadow-focus: 0 0 0 4px rgba(106,165,255,.22);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -84,6 +111,22 @@ ul { padding: 0; list-style: none; }
 }
 .brand-text p { margin-top: 5px; color: #b9c9ea; font-size: .9rem; }
 .header-status { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+.theme-toggle {
+  min-height: 42px; padding: 8px 12px; display: inline-flex; align-items: center;
+  justify-content: center; gap: 8px; color: #fff; background: rgba(255,255,255,.09);
+  border: 1px solid rgba(255,255,255,.22); border-radius: 999px;
+  font-size: .8rem; font-weight: 700; white-space: nowrap;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+.theme-toggle:hover { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.34); }
+.theme-toggle:active { transform: translateY(1px); }
+.theme-icon {
+  width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+.theme-icon-sun { display: none; }
+:root[data-theme="dark"] .theme-icon-moon { display: none; }
+:root[data-theme="dark"] .theme-icon-sun { display: block; }
 .status-pill, .header-badge {
   min-height: 38px; display: inline-flex; align-items: center; gap: 8px;
   padding: 8px 12px; border: 1px solid rgba(255,255,255,.16);
@@ -568,6 +611,39 @@ ul { padding: 0; list-style: none; }
 .footer-inner p:first-child { display: flex; flex-direction: column; }
 .footer-inner strong { color: #fff; font-family: Inter,sans-serif; font-size: .9rem; }
 
+/* Ajustes de contraste do tema escuro para componentes com cores contextuais */
+:root[data-theme="dark"] .mode-nav { background: rgba(8,17,31,.94); }
+:root[data-theme="dark"] .mode-tab:hover { background: rgba(255,255,255,.06); }
+:root[data-theme="dark"] .section-heading h2,
+:root[data-theme="dark"] .catalog-heading h2,
+:root[data-theme="dark"] .product-name { color: var(--ink-950); }
+:root[data-theme="dark"] .app-error { color: #ffb8c5; background: #351521; border-color: #783044; }
+:root[data-theme="dark"] .search-clear:hover { color: #ff9caf; background: #351521; }
+:root[data-theme="dark"] .dropdown-item { border-bottom-color: var(--line); }
+:root[data-theme="dark"] .tag-5g,
+:root[data-theme="dark"] .product-tag--5g { border-color: #276957; }
+:root[data-theme="dark"] .tag-acc,
+:root[data-theme="dark"] .product-tag--store { border-color: #705b27; }
+:root[data-theme="dark"] .tag-boost,
+:root[data-theme="dark"] .product-tag--boost,
+:root[data-theme="dark"] .plan-mini__nonfid-badge { color: #ffb4c4; background: #482031; border-color: #743248; }
+:root[data-theme="dark"] .plan-tabs { background: #0d1728; }
+:root[data-theme="dark"] .plan-tab.active { background: var(--surface-soft); box-shadow: 0 2px 8px rgba(0,0,0,.24); }
+:root[data-theme="dark"] .nonfid-note { color: #ffe0a3; background: #382b12; border-color: #6d5422; }
+:root[data-theme="dark"] .product-header { background: #0e192b; }
+:root[data-theme="dark"] .boost-control { background: #311724; border-color: #6e2c42; }
+:root[data-theme="dark"] .boost-label { color: #ff9eb2; }
+:root[data-theme="dark"] .boost-desc { color: #d9a9b5; }
+:root[data-theme="dark"] .boost-toggle { color: var(--ink-800); background: #18243a; border-color: #754057; }
+:root[data-theme="dark"] .boost-toggle[aria-checked="true"] { color: #ffb3c3; background: #482031; border-color: #b75470; }
+:root[data-theme="dark"] .catalog-select,
+:root[data-theme="dark"] .price-input { background: var(--surface); }
+:root[data-theme="dark"] .catalog-card-price { border-top-color: var(--line); }
+:root[data-theme="dark"] .catalog-card-boost { color: #ffb4c4; background: #351521; border-color: #6e2c42; }
+:root[data-theme="dark"] .dropdown-item-logo,
+:root[data-theme="dark"] .product-logo,
+:root[data-theme="dark"] .catalog-card-logo { background: #f8fafc; }
+
 @media (max-width:1080px) {
   .search-layout { grid-template-columns: minmax(0,1fr); }
   .result-workspace { position: static; }
@@ -582,6 +658,8 @@ ul { padding: 0; list-style: none; }
   .brand-logo { width: 68px; height: 46px; }
   .brand-logo-word { font-size: 21px; }
   .brand-text p, .status-pill { display: none; }
+  .theme-toggle { width: 44px; min-width: 44px; height: 44px; padding: 0; }
+  .theme-toggle span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .mode-nav-inner { min-height: 60px; align-items: stretch; }
   .mode-tab { min-height: 59px; flex: 1; border-radius: 0; font-size: .84rem; }
   .site-main { padding-top: 18px; }
@@ -614,6 +692,8 @@ ul { padding: 0; list-style: none; }
   .brand-logo { width: 60px; height: 42px; border-radius: 11px; }
   .brand-logo-word { font-size: 19px; }
   .brand-text h1 { font-size: 1rem; }
+  .header-status { gap: 7px; }
+  .theme-toggle { width: 42px; min-width: 42px; height: 42px; }
   .header-badge { min-height: 34px; padding: 7px 9px; font-size: .74rem; }
   .mode-tab { padding: 0 8px; }
   .mode-tab svg { width: 17px; height: 17px; }

@@ -34,6 +34,7 @@ Desenvolvida para uso interno de vendedores e revendedores, permitindo consultar
 | 📅 **Data de vigência** | Exibe data de atualização e validade de cada produto |
 | 💡 **Comparativo de economia** | Mostra a diferença entre o preço de balcão e o plano selecionado |
 | 📱 **Interface responsiva** | Layout profissional adaptado para celular, tablet, notebook e desktop |
+| 🌓 **Tema claro e escuro** | Botão acessível que segue o tema do aparelho na primeira visita e lembra a preferência escolhida |
 | ⚡ **Boost Trade In** | Ativa/desativa o desconto de troca direto no card, quando o produto tem Boost |
 | 📚 **Catálogo por plano** | Lista os produtos com o preço já aplicado ao plano do cliente, com filtros de marca, tipo e faixa de preço digitável |
 

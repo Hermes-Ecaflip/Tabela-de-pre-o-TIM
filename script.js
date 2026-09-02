@@ -240,6 +240,9 @@ const elModeCatalogTab = document.getElementById('modeCatalogTab');
 const elModeSearch     = document.getElementById('modeSearch');
 const elModeCatalog    = document.getElementById('modeCatalog');
 const elAppError       = document.getElementById('appError');
+const elThemeToggle    = document.getElementById('themeToggle');
+const elThemeToggleText = document.getElementById('themeToggleText');
+const elThemeColorMeta = document.getElementById('themeColorMeta');
 
 // Busca
 const elInput          = document.getElementById('searchInput');
@@ -285,6 +288,7 @@ const elCatalogEmpty       = document.getElementById('catalogEmpty');
 
 const REQUIRED_ELEMENTS = [
   elModeSearchTab, elModeCatalogTab, elModeSearch, elModeCatalog,
+  elThemeToggle, elThemeToggleText, elThemeColorMeta,
   elInput, elSearchWrapper, elDropdown, elClear, elPlanSection, elPlanTabs,
   elPlanGrid, elResultSection, elProductLogo, elProductType, elProductName,
   elProductTags, elPriceEmpty, elPriceFilled, elPricePlanName, elPriceInteger,
@@ -308,6 +312,49 @@ if (REQUIRED_ELEMENTS.some(element => !element)) {
   showFatalError('A estrutura da página está incompleta. Publique novamente todos os arquivos do projeto.');
   throw new Error('Elementos obrigatórios da interface não foram encontrados.');
 }
+
+const THEME_STORAGE_KEY = 'tim-consulta-theme';
+const darkModePreference = window.matchMedia?.('(prefers-color-scheme: dark)');
+
+function readStoredTheme() {
+  try {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    return ['light', 'dark'].includes(savedTheme) ? savedTheme : null;
+  } catch (error) {
+    return null;
+  }
+}
+
+function applyTheme(theme, persist = false) {
+  const nextTheme = theme === 'dark' ? 'dark' : 'light';
+  const isDark = nextTheme === 'dark';
+  const actionLabel = isDark ? 'Ativar tema claro' : 'Ativar tema escuro';
+
+  document.documentElement.dataset.theme = nextTheme;
+  elThemeToggle.setAttribute('aria-pressed', String(isDark));
+  elThemeToggle.setAttribute('aria-label', actionLabel);
+  elThemeToggle.title = actionLabel;
+  elThemeToggleText.textContent = isDark ? 'Tema claro' : 'Tema escuro';
+  elThemeColorMeta.content = isDark ? '#08111f' : '#061436';
+
+  if (persist) {
+    try { localStorage.setItem(THEME_STORAGE_KEY, nextTheme); } catch (error) { /* armazenamento indisponível */ }
+  }
+}
+
+applyTheme(document.documentElement.dataset.theme || readStoredTheme() || (darkModePreference?.matches ? 'dark' : 'light'));
+
+elThemeToggle.addEventListener('click', () => {
+  const currentTheme = document.documentElement.dataset.theme;
+  applyTheme(currentTheme === 'dark' ? 'light' : 'dark', true);
+});
+
+function followSystemTheme(event) {
+  if (!readStoredTheme()) applyTheme(event.matches ? 'dark' : 'light');
+}
+
+if (darkModePreference?.addEventListener) darkModePreference.addEventListener('change', followSystemTheme);
+else if (darkModePreference?.addListener) darkModePreference.addListener(followSystemTheme);
 
 function setSearchExpanded(expanded) {
   elSearchWrapper.setAttribute('aria-expanded', String(expanded));
