@@ -33,7 +33,7 @@ Desenvolvida para uso interno de vendedores e revendedores, permitindo consultar
 | 🏷️ **Logos das marcas** | Apple, Samsung, Motorola, Xiaomi, Nokia, JBL, Sony, PlayStation, Xbox e mais |
 | 📅 **Data de vigência** | Exibe data de atualização e validade de cada produto |
 | 💡 **Comparativo de economia** | Mostra a diferença entre o preço de balcão e o plano selecionado |
-| 📱 **100% responsivo** | Otimizado para celular, tablet, notebook e desktop |
+| 📱 **Interface responsiva** | Layout profissional adaptado para celular, tablet, notebook e desktop |
 | ⚡ **Boost Trade In** | Ativa/desativa o desconto de troca direto no card, quando o produto tem Boost |
 | 📚 **Catálogo por plano** | Lista os produtos com o preço já aplicado ao plano do cliente, com filtros de marca, tipo e faixa de preço digitável |
 
@@ -85,6 +85,8 @@ A tabela é atualizada semanalmente pela TIM. Para atualizar o site:
 > **Nota:** A data é lida do campo `DATA INÍCIO`, os planos são detectados automaticamente, e o **Boost Trade In** é lido da aba `TRADE IN` e casado por código — tudo sem edição manual.
 
 O processador recria a lista de Boosts do zero em cada atualização. Quando um Boost é removido da planilha, ele também deixa de aparecer no site. O endereço do `script.js` recebe uma versão baseada no conteúdo atualizado, evitando que o navegador reutilize dados antigos do cache.
+
+O `style.css` também recebe uma versão automática. O site valida a estrutura do HTML, a sintaxe do JavaScript e a sincronização dos Boosts antes de publicar uma atualização. Planos novos encontrados na planilha são incluídos automaticamente nos grupos Mobile ou TIM Fibra.
 
 ---
 

@@ -328,7 +328,7 @@ def ler_data_tabela():
 # ──────────────────────────────────────────────────────────────────────
 
 def atualizar_script_js(data_json):
-    """Substitui o array DATA dentro de script.js."""
+    """Substitui o array DATA e devolve a versão final de script.js."""
     with open("script.js", "r", encoding="utf-8") as f:
         conteudo = f.read()
     conteudo, substituicoes = re.subn(
@@ -341,10 +341,17 @@ def atualizar_script_js(data_json):
     with open("script.js", "w", encoding="utf-8") as f:
         f.write(conteudo)
     print("✅ script.js atualizado")
+    return hashlib.sha256(conteudo.encode("utf-8")).hexdigest()[:12]
 
 
-def atualizar_index_html(data_br, total, versao_dados):
-    """Atualiza data, contagem e versão do arquivo de dados em index.html."""
+def calcular_versao_arquivo(caminho):
+    """Gera uma versão curta baseada no conteúdo de um arquivo."""
+    with open(caminho, "rb") as arquivo:
+        return hashlib.sha256(arquivo.read()).hexdigest()[:12]
+
+
+def atualizar_index_html(data_br, total, versao_script, versao_estilo):
+    """Atualiza data, contagem e versões dos arquivos estáticos em index.html."""
     with open("index.html", "r", encoding="utf-8") as f:
         html = f.read()
 
@@ -355,22 +362,34 @@ def atualizar_index_html(data_br, total, versao_dados):
     html = re.sub(r"Tabela atualizada em <strong>[\d/]+</strong>",
                   f"Tabela atualizada em <strong>{data_br}</strong>", html)
     html = re.sub(r"Vigência: [\d/]+", f"Vigência: {data_br}", html)
+    html = re.sub(r'(<p class="update-date"><span>Vigência</span>\s*)[\d/]+',
+                  rf"\g<1>{data_br}", html)
     html = re.sub(r'<p class="header-badge"[^>]*>\d+ itens</p>',
                   f'<p class="header-badge" aria-label="Total de itens">{total} itens</p>', html)
     html = re.sub(r"\d+ itens &middot; Canal Revendas &middot;",
                   f"{total} itens &middot; Canal Revendas &middot;", html)
+    html = re.sub(r"\d+ itens &middot; Atualizado em",
+                  f"{total} itens &middot; Atualizado em", html)
 
-    # O hash muda sempre que qualquer dado muda, inclusive quando um Boost
-    # deixa de existir. Assim o navegador baixa o script.js novo em vez de
-    # reutilizar uma cópia antiga que ainda exibia o benefício removido.
+    # Os hashes mudam quando os dados, a lógica ou o visual mudam. Assim o
+    # navegador não reutiliza arquivos antigos depois de uma publicação.
     html, substituicoes = re.subn(
         r'<script src="script\.js(?:\?v=[^"]*)?"></script>',
-        f'<script src="script.js?v={versao_dados}"></script>',
+        f'<script src="script.js?v={versao_script}"></script>',
         html,
         count=1,
     )
     if substituicoes != 1:
         raise RuntimeError("Não foi possível localizar a inclusão de script.js em index.html.")
+
+    html, substituicoes = re.subn(
+        r'<link rel="stylesheet" href="style\.css(?:\?v=[^"]*)?">',
+        f'<link rel="stylesheet" href="style.css?v={versao_estilo}">',
+        html,
+        count=1,
+    )
+    if substituicoes != 1:
+        raise RuntimeError("Não foi possível localizar a inclusão de style.css em index.html.")
 
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html)
@@ -416,13 +435,13 @@ def main():
     total = len(todos)
     com_boost = sum(1 for p in todos if p.get("boost"))
     data_json = json.dumps(todos, ensure_ascii=False, separators=(",", ":"))
-    versao_dados = hashlib.sha256(data_json.encode("utf-8")).hexdigest()[:12]
 
     print(f"✅ {total} itens extraídos ({len(aparelhos)} aparelhos + {len(acessorios)} acessórios)")
     print(f"⚡ {com_boost} itens com Boost ativável no site")
 
-    atualizar_script_js(data_json)
-    atualizar_index_html(data_br, total, versao_dados)
+    versao_script = atualizar_script_js(data_json)
+    versao_estilo = calcular_versao_arquivo("style.css")
+    atualizar_index_html(data_br, total, versao_script, versao_estilo)
     atualizar_readme(data_br, total)
 
     print(f"\n🎉 Concluído! Tabela de {data_br} com {total} itens publicada.")

@@ -7,9 +7,11 @@
   <title>TIM — Consulta de Preços · Revendas</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=e04b315952ee">
 </head>
 <body>
+
+  <a class="skip-link" href="#mainContent">Ir para a consulta</a>
 
   <!-- ════════════════════════════════════════════════════
        CABEÇALHO — Identidade visual e data da tabela
@@ -17,14 +19,19 @@
   <header class="site-header" role="banner">
     <div class="header-inner">
       <div class="brand">
-        <span class="brand-logo" aria-label="TIM">TIM</span>
-        <div class="brand-divider" aria-hidden="true"></div>
+        <span class="brand-logo" aria-label="TIM">
+          <span class="brand-logo-word">TIM</span>
+          <span class="brand-logo-bars" aria-hidden="true"><i></i><i></i><i></i></span>
+        </span>
         <div class="brand-text">
           <h1>Consulta de Preços</h1>
-          <p>Tabela Revendas · Com Fidelização · <time datetime="2026-09-02">02/09/2026</time></p>
+          <p>Canal Revendas · Ofertas com fidelização</p>
         </div>
       </div>
-      <p class="header-badge" aria-label="Total de itens">276 itens</p>
+      <div class="header-status">
+        <span class="status-pill"><span class="status-dot" aria-hidden="true"></span>Dados atualizados</span>
+        <p class="header-badge" aria-label="Total de itens">276 itens</p>
+      </div>
     </div>
   </header>
 
@@ -33,11 +40,13 @@
   ════════════════════════════════════════════════════ -->
   <nav class="mode-nav" role="tablist" aria-label="Modo de navegação">
     <div class="mode-nav-inner">
-      <button class="mode-tab active" id="modeSearchTab" role="tab" aria-selected="true" data-mode="search">
-        🔍 Buscar Produto
+      <button class="mode-tab active" id="modeSearchTab" role="tab" aria-selected="true" aria-controls="modeSearch" data-mode="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+        Buscar produto
       </button>
-      <button class="mode-tab" id="modeCatalogTab" role="tab" aria-selected="false" data-mode="catalog">
-        📚 Catálogo por Plano
+      <button class="mode-tab" id="modeCatalogTab" role="tab" aria-selected="false" aria-controls="modeCatalog" data-mode="catalog" tabindex="-1">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22z"></path><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5A2.5 2.5 0 0 1 20 22z"></path></svg>
+        Catálogo por plano
       </button>
     </div>
   </nav>
@@ -45,24 +54,40 @@
   <!-- ════════════════════════════════════════════════════
        CONTEÚDO PRINCIPAL
   ════════════════════════════════════════════════════ -->
-  <main class="site-main" role="main">
+  <main class="site-main" id="mainContent" role="main">
+
+    <aside class="app-error" id="appError" role="alert" hidden>
+      <strong>Não foi possível carregar a consulta.</strong>
+      <span>Atualize a página. Se o problema continuar, confira os arquivos publicados.</span>
+    </aside>
 
     <!-- Banner de vigência da tabela -->
     <aside class="update-banner" aria-label="Informação de atualização">
-      <span class="update-dot" aria-hidden="true"></span>
-      <p class="update-text">
-        Tabela atualizada em <strong>02/09/2026</strong> — Canal Revendas · COM FIDELIZAÇÃO
-      </p>
-      <p class="update-date">Vigência: 02/09/2026</p>
+      <span class="update-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 1-2.34-5.66"></path><path d="M20 4v7h-7"></path></svg>
+      </span>
+      <div class="update-copy">
+        <p class="update-text">Tabela atualizada em <strong>02/09/2026</strong></p>
+        <p class="update-subtext">Preços do canal Revendas com fidelização</p>
+      </div>
+      <p class="update-date"><span>Vigência</span> 02/09/2026</p>
     </aside>
 
     <!-- ══════════════════ MODO BUSCA ══════════════════ -->
-    <div id="modeSearch" role="tabpanel" aria-labelledby="modeSearchTab">
+    <div id="modeSearch" role="tabpanel" aria-labelledby="modeSearchTab" tabindex="0">
+
+      <div class="search-layout">
+        <div class="search-workspace">
 
       <!-- Seção de busca -->
       <section class="search-section" aria-label="Busca de produtos">
-        <label class="field-label" for="searchInput">Buscar Aparelho ou Acessório</label>
-        <div class="search-wrapper" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-owns="searchDropdown">
+        <div class="section-heading">
+          <span class="section-kicker">Consulta rápida</span>
+          <h2>Qual produto você procura?</h2>
+          <p>Pesquise pelo modelo e escolha o plano do cliente.</p>
+        </div>
+        <label class="field-label" for="searchInput">Aparelho ou acessório</label>
+        <div class="search-wrapper" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-controls="searchDropdown">
           <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <circle cx="11" cy="11" r="8"/>
             <path d="m21 21-4.35-4.35"/>
@@ -70,27 +95,37 @@
           <input
             type="search"
             id="searchInput"
-            placeholder="Ex: iPhone 16, Galaxy S25, JBL Flip, PS5…"
+            placeholder="Ex.: iPhone 16, Galaxy S25, JBL Flip…"
             autocomplete="off"
             spellcheck="false"
             aria-autocomplete="list"
             aria-controls="searchDropdown"
           >
-          <button class="search-clear" id="searchClear" aria-label="Limpar busca" hidden>✕</button>
+          <button class="search-clear" id="searchClear" type="button" aria-label="Limpar busca" hidden>✕</button>
           <ul class="search-dropdown" id="searchDropdown" role="listbox" aria-label="Sugestões de produtos"></ul>
         </div>
       </section>
 
       <!-- Seletor de planos (visível após selecionar produto) -->
       <section class="plan-section" id="planSection" aria-label="Seleção de plano" hidden>
-        <p class="field-label">Selecionar Plano</p>
+        <div class="section-title-row">
+          <div>
+            <span class="section-step">2</span>
+            <p class="field-label">Selecione o plano</p>
+          </div>
+          <span class="section-helper">Mostramos somente preços disponíveis</span>
+        </div>
         <nav class="plan-tabs" id="planTabs" aria-label="Grupos de planos">
-          <button class="plan-tab active" data-group="nonfid" aria-pressed="true">💰 Sem Fidelização</button>
-          <button class="plan-tab" data-group="mobile" aria-pressed="false">📱 Mobile Fidelizado</button>
-          <button class="plan-tab" data-group="fibra" aria-pressed="false">🌐 TIM Fibra</button>
+          <button class="plan-tab active" type="button" data-group="nonfid" aria-pressed="true">Sem fidelização</button>
+          <button class="plan-tab" type="button" data-group="mobile" aria-pressed="false">Mobile</button>
+          <button class="plan-tab" type="button" data-group="fibra" aria-pressed="false">TIM Fibra</button>
         </nav>
         <div id="planGrid" role="list" aria-label="Planos disponíveis"></div>
       </section>
+
+        </div>
+
+        <div class="result-workspace">
 
       <!-- Resultado da consulta -->
       <section class="result-section" id="resultSection" aria-label="Resultado da consulta" hidden>
@@ -111,9 +146,9 @@
               <span class="boost-label">⚡ Boost Trade In</span>
               <span class="boost-desc" id="boostDesc">Desconto extra na troca de aparelho usado</span>
             </div>
-            <button class="boost-toggle" id="boostToggle" role="switch" aria-checked="false">
+            <button class="boost-toggle" id="boostToggle" type="button" role="switch" aria-checked="false">
               <span class="boost-toggle-track"><span class="boost-toggle-thumb"></span></span>
-              <span class="boost-toggle-state" id="boostToggleState">OFF</span>
+              <span class="boost-toggle-state" id="boostToggleState">Desativado</span>
             </button>
           </div>
 
@@ -153,22 +188,35 @@
 
       <!-- Estado inicial vazio -->
       <div class="empty-state" id="emptyState" aria-live="polite">
-        <span class="empty-icon" aria-hidden="true">🔍</span>
-        <h2>Busque um aparelho ou acessório</h2>
-        <p>Digite o nome para consultar os preços por plano TIM.<br>Inclui celulares, tablets e acessórios.</p>
+        <span class="empty-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg>
+        </span>
+        <h2>O resultado aparecerá aqui</h2>
+        <p>Busque um produto para comparar todos os preços disponíveis.</p>
+      </div>
+
+        </div>
       </div>
 
     </div>
 
     <!-- ══════════════════ MODO CATÁLOGO ══════════════════ -->
-    <div id="modeCatalog" role="tabpanel" aria-labelledby="modeCatalogTab" hidden>
+    <div id="modeCatalog" role="tabpanel" aria-labelledby="modeCatalogTab" tabindex="0" hidden>
+
+      <div class="catalog-heading">
+        <div>
+          <span class="section-kicker">Visão completa</span>
+          <h2>Catálogo por plano</h2>
+          <p>Escolha o plano e refine os resultados com os filtros.</p>
+        </div>
+      </div>
 
       <!-- Filtros do catálogo -->
       <section class="catalog-filters" aria-label="Filtros do catálogo">
         <div class="catalog-filter-group">
           <label class="field-label" for="catalogPlanSelect">Plano do Cliente</label>
           <select class="catalog-select" id="catalogPlanSelect" aria-label="Selecionar plano do cliente">
-            <option value="">— Escolha o plano para ver os preços —</option>
+            <option value="">Escolha um plano</option>
           </select>
         </div>
 
@@ -176,8 +224,8 @@
           <label class="field-label" for="catalogTypeSelect">Tipo</label>
           <select class="catalog-select" id="catalogTypeSelect" aria-label="Filtrar por tipo">
             <option value="all">Todos</option>
-            <option value="aparelho">📱 Aparelhos</option>
-            <option value="acessorio">🔌 Acessórios</option>
+            <option value="aparelho">Aparelhos</option>
+            <option value="acessorio">Acessórios</option>
           </select>
         </div>
 
@@ -191,14 +239,14 @@
         <div class="catalog-filter-group catalog-filter-checkbox">
           <label class="catalog-check">
             <input type="checkbox" id="catalogBoostOnly">
-            <span>⚡ Só com Boost</span>
+            <span>Somente com Boost</span>
           </label>
         </div>
       </section>
 
       <!-- Faixa de preço (digitável) -->
       <section class="catalog-price-range" aria-label="Faixa de preço">
-        <div class="field-label">Faixa de Preço (R$)</div>
+        <div class="field-label">Faixa de preço</div>
         <div class="price-input-row">
           <div class="price-input-group">
             <span class="price-input-prefix">de</span>
@@ -209,7 +257,7 @@
             <span class="price-input-prefix">até</span>
             <input type="number" id="catalogPriceMax" class="price-input" min="0" step="50" placeholder="sem limite" inputmode="numeric" aria-label="Preço máximo">
           </div>
-          <button class="price-input-clear" id="catalogPriceClear" type="button">Limpar</button>
+          <button class="price-input-clear" id="catalogPriceClear" type="button">Limpar valores</button>
         </div>
       </section>
 
@@ -221,9 +269,11 @@
 
       <!-- Estado vazio do catálogo -->
       <div class="empty-state" id="catalogEmpty">
-        <span class="empty-icon" aria-hidden="true">📚</span>
+        <span class="empty-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22z"></path><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5A2.5 2.5 0 0 1 20 22z"></path></svg>
+        </span>
         <h2>Selecione o plano do cliente</h2>
-        <p>Escolha o plano acima para montar o catálogo com os preços já aplicados.<br>Depois é só filtrar por tipo, faixa de preço ou Boost.</p>
+        <p>Os produtos disponíveis serão organizados do menor para o maior preço.</p>
       </div>
 
     </div>
@@ -234,12 +284,12 @@
        RODAPÉ
   ════════════════════════════════════════════════════ -->
   <footer class="site-footer" role="contentinfo">
-    <p>
-      276 itens &middot; Canal Revendas &middot;
-      Última atualização: <time datetime="2026-09-02">02/09/2026</time> &middot; COM FIDELIZAÇÃO
-    </p>
+    <div class="footer-inner">
+      <p><strong>Consulta TIM Revendas</strong><span>Ferramenta interna de apoio à venda</span></p>
+      <p>276 itens &middot; Atualizado em <time datetime="2026-09-02">02/09/2026</time> &middot; Com fidelização</p>
+    </div>
   </footer>
 
-  <script src="script.js?v=6f3ddfb89d31"></script>
+  <script src="script.js?v=1c861b9bbdda"></script>
 </body>
 </html>

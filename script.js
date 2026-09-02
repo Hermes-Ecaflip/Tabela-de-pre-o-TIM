@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════
    TIM Consulta de Preços — Canal Revendas
-   script.js · Última atualização: 17/06/2026
+   script.js · Dados gerados automaticamente pela planilha
    ═══════════════════════════════════════════════════════════ */
 
 
@@ -13,6 +13,10 @@ const DATA = [{"codigo":"4013033","descricao":"AP. FIXO MULTILASER RE504","descr
 /* ──────────────────────────────────────────────────────────
    2. CONFIGURAÇÃO DOS GRUPOS DE PLANOS
    ────────────────────────────────────────────────────────── */
+const PRODUCTS = Array.isArray(DATA)
+  ? DATA.filter(product => product && typeof product.descricao === 'string' && product.descricao.trim())
+  : [];
+
 const PLAN_GROUPS = {
   mobile: [
     'TIM CONTROLE', 'TIM CONTROLE PLUS', 'TIM CONTROLE PREMIUM',
@@ -30,6 +34,21 @@ const PLAN_GROUPS = {
     'TIM Fibra 1GB M 24', 'TIM Fibra 2GB 24',
   ],
 };
+
+// Inclui automaticamente planos novos encontrados na planilha. Isso mantém
+// o site atualizado mesmo quando a TIM altera o nome ou adiciona uma oferta.
+const discoveredPlans = new Set(
+  PRODUCTS.flatMap(product => Object.keys(product.planos || {})),
+);
+Object.keys(PLAN_GROUPS).forEach(group => {
+  PLAN_GROUPS[group] = PLAN_GROUPS[group].filter(plan => discoveredPlans.has(plan));
+});
+[...discoveredPlans]
+  .sort((a, b) => a.localeCompare(b, 'pt-BR'))
+  .forEach(plan => {
+    const group = /FIBRA|ULTRAFIBRA/i.test(plan) ? 'fibra' : 'mobile';
+    if (!PLAN_GROUPS[group].includes(plan)) PLAN_GROUPS[group].push(plan);
+  });
 
 /** Preços sem fidelização (campos diretos do objeto produto) */
 const NONFID = [
@@ -75,7 +94,7 @@ const BRAND_LOGOS = {
 
 /** Detecta a marca de um produto pelo nome. */
 function getBrand(descricao) {
-  const d = descricao.toUpperCase();
+  const d = String(descricao || '').toUpperCase();
   if (d.includes('DUALSENSE') || d.includes('PLAYSTATION') || /\bPS[45]\b/.test(d) || d.includes('PULSE 3D')) return 'PLAYSTATION';
   if (d.includes('XBOX'))                              return 'XBOX';
   if (d.includes('MICROSOFT') && !d.includes('XBOX'))  return 'MICROSOFT';
@@ -111,6 +130,7 @@ function getAccessoryIcon(categoria) {
 
 /** Retorna o HTML do logo (marca) ou ícone de categoria de um produto. */
 function logoHtmlFor(product, cssClass) {
+  if (!product || !cssClass) return '';
   const brand = getBrand(product.descricao);
   if (brand && BRAND_LOGOS[brand]) {
     return `<div class="${cssClass}">${BRAND_LOGOS[brand]}</div>`;
@@ -122,6 +142,7 @@ function logoHtmlFor(product, cssClass) {
 /** Separa um valor numérico em parte inteira e centavos (pt-BR). */
 function splitPrice(value) {
   const n = Number(value);
+  if (!Number.isFinite(n) || n < 0) return { integer: '—', cents: '' };
   const integer = Math.floor(n).toLocaleString('pt-BR');
   const cents   = ',' + (n % 1 > 0.001 ? (n % 1).toFixed(2).slice(2) : '00');
   return { integer, cents };
@@ -129,32 +150,58 @@ function splitPrice(value) {
 
 /** Formata um valor em reais (ex: "R$ 1.299,00") ou retorna null. */
 function formatPrice(value) {
-  if (value == null || isNaN(Number(value))) return null;
+  if (value == null || !Number.isFinite(Number(value)) || Number(value) < 0) return null;
   const { integer, cents } = splitPrice(value);
   return `R$ ${integer}${cents}`;
 }
 
+/** Escapa valores vindos da planilha antes de inseri-los no HTML. */
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
+  })[char]);
+}
+
+function escapeAttribute(value) {
+  return escapeHtml(value).replace(/`/g, '&#96;');
+}
+
+function normalizeSearchText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
 /** Envolve ocorrências de `query` em `text` com <mark> para destaque. */
 function highlight(text, query) {
-  if (!query) return text;
+  const safeText = escapeHtml(text);
+  if (!query) return safeText;
   const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return text.replace(new RegExp(`(${escaped})`, 'gi'), '<mark>$1</mark>');
+  return safeText.replace(new RegExp(`(${escaped})`, 'gi'), '<mark>$1</mark>');
 }
 
 /** Retorna o preço de um produto para um plano (fidelizado ou sem fidelização). */
 function getPlanPrice(product, plan) {
+  if (!product || !plan) return null;
   const nfField = NONFID_FIELD[plan];
-  return nfField ? (product[nfField] ?? null) : (product.planos?.[plan] ?? null);
+  const value = nfField ? product[nfField] : product.planos?.[plan];
+  return Number.isFinite(Number(value)) && Number(value) >= 0 ? Number(value) : null;
 }
 
 /** Retorna todos os planos disponíveis de um produto, incluindo sem fidelização. */
 function getAllPlanEntries(product) {
+  if (!product) return [];
   const entries = [];
   NONFID.forEach(({ label, field }) => {
-    if (product[field] != null) entries.push({ plan: label, price: product[field], isNonfid: true });
+    const price = getPlanPrice(product, label);
+    if (price != null) entries.push({ plan: label, price, isNonfid: true });
   });
   Object.entries(product.planos || {}).forEach(([plan, price]) => {
-    entries.push({ plan, price, isNonfid: false });
+    const normalized = Number(price);
+    if (Number.isFinite(normalized) && normalized >= 0) {
+      entries.push({ plan, price: normalized, isNonfid: false });
+    }
   });
   return entries;
 }
@@ -164,8 +211,11 @@ function getAllPlanEntries(product) {
  * O preço nunca fica abaixo de zero.
  */
 function applyBoost(price, product, boostActive) {
-  if (!boostActive || !product.boost || price == null) return price;
-  return Math.max(0, price - product.boost);
+  const normalizedPrice = Number(price);
+  const boost = Number(product?.boost);
+  if (!Number.isFinite(normalizedPrice)) return null;
+  if (!boostActive || !Number.isFinite(boost) || boost <= 0) return normalizedPrice;
+  return Math.max(0, normalizedPrice - boost);
 }
 
 
@@ -189,9 +239,11 @@ const elModeSearchTab  = document.getElementById('modeSearchTab');
 const elModeCatalogTab = document.getElementById('modeCatalogTab');
 const elModeSearch     = document.getElementById('modeSearch');
 const elModeCatalog    = document.getElementById('modeCatalog');
+const elAppError       = document.getElementById('appError');
 
 // Busca
 const elInput          = document.getElementById('searchInput');
+const elSearchWrapper  = elInput?.closest('.search-wrapper');
 const elDropdown       = document.getElementById('searchDropdown');
 const elClear          = document.getElementById('searchClear');
 const elPlanSection    = document.getElementById('planSection');
@@ -231,6 +283,41 @@ const elCatalogSummary     = document.getElementById('catalogSummary');
 const elCatalogGrid        = document.getElementById('catalogGrid');
 const elCatalogEmpty       = document.getElementById('catalogEmpty');
 
+const REQUIRED_ELEMENTS = [
+  elModeSearchTab, elModeCatalogTab, elModeSearch, elModeCatalog,
+  elInput, elSearchWrapper, elDropdown, elClear, elPlanSection, elPlanTabs,
+  elPlanGrid, elResultSection, elProductLogo, elProductType, elProductName,
+  elProductTags, elPriceEmpty, elPriceFilled, elPricePlanName, elPriceInteger,
+  elPriceDecimal, elPriceHint, elPriceComparison, elAllPlansCount, elAllPlansGrid,
+  elEmptyState, elBoostControl, elBoostToggle, elBoostToggleState, elBoostDesc,
+  elCatalogPlanSelect, elCatalogTypeSelect, elCatalogBrandSelect,
+  elCatalogBoostOnly, elCatalogPriceMin, elCatalogPriceMax, elCatalogPriceClear,
+  elCatalogSummary, elCatalogGrid, elCatalogEmpty,
+];
+
+function showFatalError(message) {
+  console.error(message);
+  if (elAppError) {
+    elAppError.hidden = false;
+    const detail = elAppError.querySelector('span');
+    if (detail) detail.textContent = message;
+  }
+}
+
+if (REQUIRED_ELEMENTS.some(element => !element)) {
+  showFatalError('A estrutura da página está incompleta. Publique novamente todos os arquivos do projeto.');
+  throw new Error('Elementos obrigatórios da interface não foram encontrados.');
+}
+
+function setSearchExpanded(expanded) {
+  elSearchWrapper.setAttribute('aria-expanded', String(expanded));
+  elDropdown.hidden = !expanded;
+  if (!expanded) {
+    focusIndex = -1;
+    elInput.removeAttribute('aria-activedescendant');
+  }
+}
+
 
 /* ══════════════════════════════════════════════════════════
    PARTE A — MODO BUSCA
@@ -239,8 +326,15 @@ const elCatalogEmpty       = document.getElementById('catalogEmpty');
 /* ── 7. Busca e dropdown ── */
 function search(query) {
   if (!query || query.trim().length < 2) return [];
-  const terms = query.toLowerCase().trim().split(/\s+/);
-  return DATA.filter(p => terms.every(t => p.descricao.toLowerCase().includes(t))).slice(0, 20);
+  const terms = normalizeSearchText(query).trim().split(/\s+/);
+  return PRODUCTS.filter(product => {
+    const haystack = normalizeSearchText([
+      product.descricao,
+      product.codigo,
+      ...(Array.isArray(product.variants) ? product.variants : []),
+    ].join(' '));
+    return terms.every(term => haystack.includes(term));
+  }).slice(0, 20);
 }
 
 function renderDropdown(query) {
@@ -248,13 +342,13 @@ function renderDropdown(query) {
   focusIndex = -1;
 
   if (!query || query.length < 2) {
-    elDropdown.hidden = true;
     elDropdown.innerHTML = '';
+    setSearchExpanded(false);
     return;
   }
   if (!filteredItems.length) {
-    elDropdown.innerHTML = `<li class="dropdown-no-results">Nenhum resultado para "${query}"</li>`;
-    elDropdown.hidden = false;
+    elDropdown.innerHTML = `<li class="dropdown-no-results">Nenhum resultado para “${escapeHtml(query)}”</li>`;
+    setSearchExpanded(true);
     return;
   }
 
@@ -265,16 +359,16 @@ function renderDropdown(query) {
     const is5g   = tech.includes('5G');
 
     let tagsHtml = '';
-    if (tech)       tagsHtml += `<span class="tag ${is5g ? 'tag-5g' : 'tag-tech'}">${tech}</span>`;
+    if (tech)       tagsHtml += `<span class="tag ${is5g ? 'tag-5g' : 'tag-tech'}">${escapeHtml(tech)}</span>`;
     if (product.boost) tagsHtml += `<span class="tag tag-boost">⚡ Boost</span>`;
     if (isLoja)        tagsHtml += `<span class="tag tag-acc">LOJA</span>`;
-    else if (isAcc)    tagsHtml += `<span class="tag tag-acc">${product.categoria}</span>`;
+    else if (isAcc)    tagsHtml += `<span class="tag tag-acc">${escapeHtml(product.categoria || 'Acessório')}</span>`;
 
     const subtext = product.pre ? `Balcão: ${formatPrice(product.pre)}`
       : product.base_retail ? `Base: ${formatPrice(product.base_retail)}` : '';
 
     return `
-      <li class="dropdown-item" role="option" data-index="${index}">
+      <li class="dropdown-item" id="searchOption${index}" role="option" aria-selected="false" data-index="${index}">
         ${logoHtmlFor(product, 'dropdown-item-logo')}
         <div class="dropdown-item-info">
           <div class="dropdown-item-name">${highlight(product.descricao, query)}</div>
@@ -284,23 +378,18 @@ function renderDropdown(query) {
       </li>`;
   }).join('');
 
-  elDropdown.hidden = false;
-  elDropdown.querySelectorAll('.dropdown-item').forEach(el => {
-    el.addEventListener('mousedown', e => {
-      e.preventDefault();
-      selectProduct(filteredItems[+el.dataset.index]);
-    });
-  });
+  setSearchExpanded(true);
 }
 
 /* ── 8. Seleção de produto ── */
 function selectProduct(product) {
+  if (!product || typeof product.descricao !== 'string') return;
   selectedProduct = product;
   selectedPlan    = null;
   boostActive     = false;  // reseta o Boost ao trocar de produto
 
   elInput.value     = product.descricao;
-  elDropdown.hidden = true;
+  setSearchExpanded(false);
   elClear.hidden    = false;
 
   const hasNF   = NONFID.some(n => product[n.field] != null);
@@ -311,8 +400,11 @@ function selectProduct(product) {
   else if (hasMob)  activeGroup = 'mobile';
   else if (hasFib)  activeGroup = 'fibra';
 
+  const availableGroups = { nonfid: hasNF, mobile: hasMob, fibra: hasFib };
+
   elPlanTabs.querySelectorAll('.plan-tab').forEach(tab => {
     const active = tab.dataset.group === activeGroup;
+    tab.disabled = !availableGroups[tab.dataset.group];
     tab.classList.toggle('active', active);
     tab.setAttribute('aria-pressed', String(active));
   });
@@ -336,6 +428,7 @@ function showInterface() {
 /* ── 9. Cabeçalho do produto ── */
 function renderProductHeader() {
   const product = selectedProduct;
+  if (!product) return;
   const isAcc   = product.tipo === 'acessorio';
   const isLoja  = product.codigo === 'LOJA';
 
@@ -349,16 +442,16 @@ function renderProductHeader() {
     elProductLogo.innerHTML = isAcc ? getAccessoryIcon(product.categoria) : '📱';
   }
 
-  elProductType.textContent = isLoja ? '🛍️ Acessório Loja'
-    : isAcc ? `🔌 Acessório · ${product.categoria}`
-    : '📱 Aparelho';
+  elProductType.textContent = isLoja ? 'Acessório de loja'
+    : isAcc ? `Acessório · ${product.categoria || 'Geral'}`
+    : 'Aparelho';
 
   elProductName.textContent = product.descricao;
 
   const tags = [];
   if (product.tecnologia) {
     const is5g = product.tecnologia.includes('5G');
-    tags.push(`<li class="product-tag ${is5g ? 'product-tag--5g' : 'product-tag--default'}">${product.tecnologia}</li>`);
+    tags.push(`<li class="product-tag ${is5g ? 'product-tag--5g' : 'product-tag--default'}">${escapeHtml(product.tecnologia)}</li>`);
   }
   if (product.boost) {
     tags.push(`<li class="product-tag product-tag--boost">⚡ Boost ${formatPrice(product.boost)}</li>`);
@@ -367,7 +460,7 @@ function renderProductHeader() {
     tags.push(`<li class="product-tag ${isLoja ? 'product-tag--store' : 'product-tag--default'}">Balcão: ${formatPrice(product.pre)}</li>`);
   }
   if (product.data_fim && product.data_fim !== '31.12.9999') {
-    tags.push(`<li class="product-tag product-tag--default">Até: ${product.data_fim}</li>`);
+    tags.push(`<li class="product-tag product-tag--default">Até: ${escapeHtml(product.data_fim)}</li>`);
   }
   elProductTags.innerHTML = tags.join('');
 }
@@ -386,15 +479,19 @@ function renderBoostControl() {
 }
 
 function setBoostState(active) {
-  boostActive = active;
-  elBoostToggle.setAttribute('aria-checked', String(active));
-  elBoostToggleState.textContent = active ? 'ON' : 'OFF';
+  boostActive = Boolean(active && Number(selectedProduct?.boost) > 0);
+  elBoostToggle.setAttribute('aria-checked', String(boostActive));
+  elBoostToggleState.textContent = boostActive ? 'Ativado' : 'Desativado';
 }
 
 /* ── 10. Grade de planos ── */
 function renderPlanGrid() {
+  if (!selectedProduct) {
+    elPlanGrid.innerHTML = '';
+    return;
+  }
   if (activeGroup === 'nonfid') renderNonfidGrid();
-  else renderFidelizedGrid(PLAN_GROUPS[activeGroup]);
+  else renderFidelizedGrid(PLAN_GROUPS[activeGroup] || []);
 }
 
 function renderNonfidGrid() {
@@ -405,14 +502,17 @@ function renderNonfidGrid() {
     const price    = applyBoost(rawPrice, product, boostActive);
     const isSelected = selectedPlan === label;
     return `
-      <li class="nonfid-card ${!hasPrice ? 'unavailable' : ''} ${isSelected ? 'selected' : ''}" data-plan="${label}" role="option" aria-selected="${isSelected}">
-        <div>
-          <p class="nonfid-card__name">${label}</p>
-          <p class="nonfid-card__desc">${desc}</p>
-        </div>
-        ${hasPrice
-          ? `<p class="nonfid-card__price">${formatPrice(price)}</p>`
-          : `<p class="nonfid-card__price na">Não disponível</p>`}
+      <li>
+        <button type="button" class="nonfid-card ${!hasPrice ? 'unavailable' : ''} ${isSelected ? 'selected' : ''}"
+          data-plan="${escapeAttribute(label)}" aria-pressed="${isSelected}" ${!hasPrice ? 'disabled' : ''}>
+          <span>
+            <span class="nonfid-card__name">${escapeHtml(label)}</span>
+            <span class="nonfid-card__desc">${escapeHtml(desc)}</span>
+          </span>
+          ${hasPrice
+            ? `<span class="nonfid-card__price">${formatPrice(price)}</span>`
+            : `<span class="nonfid-card__price na">Não disponível</span>`}
+        </button>
       </li>`;
   }).join('');
 
@@ -423,7 +523,7 @@ function renderNonfidGrid() {
         ⚠️ Valores sem fidelização de aparelho. Para condições com fidelização, selecione uma das abas de planos.
       </li>
     </ul>`;
-  elPlanGrid.querySelectorAll('.nonfid-card:not(.unavailable)').forEach(el => {
+  elPlanGrid.querySelectorAll('.nonfid-card:not(:disabled)').forEach(el => {
     el.addEventListener('click', () => selectPlan(el.dataset.plan));
   });
 }
@@ -437,21 +537,25 @@ function renderFidelizedGrid(plans) {
     const price    = applyBoost(rawPrice, product, boostActive);
     const isSelected = selectedPlan === plan;
     return `
-      <li class="plan-card ${!hasPrice ? 'unavailable' : ''} ${isSelected ? 'selected' : ''}" data-plan="${plan}" role="option" aria-selected="${isSelected}">
-        <span class="plan-card__name">${plan}</span>
-        ${hasPrice
-          ? `<span class="plan-card__price">${formatPrice(price)}</span>`
-          : `<span class="plan-card__price na">N/D</span>`}
+      <li>
+        <button type="button" class="plan-card ${!hasPrice ? 'unavailable' : ''} ${isSelected ? 'selected' : ''}"
+          data-plan="${escapeAttribute(plan)}" aria-pressed="${isSelected}" ${!hasPrice ? 'disabled' : ''}>
+          <span class="plan-card__name">${escapeHtml(plan)}</span>
+          ${hasPrice
+            ? `<span class="plan-card__price">${formatPrice(price)}</span>`
+            : `<span class="plan-card__price na">N/D</span>`}
+        </button>
       </li>`;
   }).join('');
 
   elPlanGrid.innerHTML = `<ul class="plan-grid">${cards}</ul>`;
-  elPlanGrid.querySelectorAll('.plan-card:not(.unavailable)').forEach(el => {
+  elPlanGrid.querySelectorAll('.plan-card:not(:disabled)').forEach(el => {
     el.addEventListener('click', () => selectPlan(el.dataset.plan));
   });
 }
 
 function selectPlan(plan) {
+  if (!selectedProduct || getPlanPrice(selectedProduct, plan) == null) return;
   selectedPlan = plan;
   renderPlanGrid();
   updatePriceSpotlight();
@@ -516,17 +620,20 @@ function updateAllPlans() {
     const price = applyBoost(rawPrice, selectedProduct, boostActive);
     const { integer, cents } = splitPrice(price);
     return `
-      <li class="plan-mini ${isActive ? 'active' : ''}" data-plan="${plan}" data-nonfid="${isNonfid}">
-        <span class="plan-mini__name">
-          ${plan}
-          ${isNonfid ? `<span class="plan-mini__nonfid-badge">SEM FIDELIZAÇÃO</span>` : ''}
-        </span>
-        <div class="plan-mini__price-block">
-          <div class="plan-mini__currency">R$</div>
-          <div class="plan-mini__value ${isNonfid ? 'nonfid' : ''}">
-            ${integer}<span class="plan-mini__cents">${cents}</span>
-          </div>
-        </div>
+      <li>
+        <button type="button" class="plan-mini ${isActive ? 'active' : ''}"
+          data-plan="${escapeAttribute(plan)}" data-nonfid="${isNonfid}" aria-pressed="${isActive}">
+          <span class="plan-mini__name">
+            ${escapeHtml(plan)}
+            ${isNonfid ? `<span class="plan-mini__nonfid-badge">SEM FIDELIZAÇÃO</span>` : ''}
+          </span>
+          <span class="plan-mini__price-block">
+            <span class="plan-mini__currency">R$</span>
+            <span class="plan-mini__value ${isNonfid ? 'nonfid' : ''}">
+              ${integer}<span class="plan-mini__cents">${cents}</span>
+            </span>
+          </span>
+        </button>
       </li>`;
   }).join('');
 
@@ -565,16 +672,17 @@ function populateCatalogPlans() {
     { label: '🌐 Fibra (Internet)', plans: PLAN_GROUPS.fibra },
   ];
   const html = optgroups.map(g => `
-    <optgroup label="${g.label}">
-      ${g.plans.map(p => `<option value="${p}">${p}</option>`).join('')}
+    <optgroup label="${escapeAttribute(g.label)}">
+      ${g.plans.map(p => `<option value="${escapeAttribute(p)}">${escapeHtml(p)}</option>`).join('')}
     </optgroup>`).join('');
+  elCatalogPlanSelect.querySelectorAll('optgroup').forEach(group => group.remove());
   elCatalogPlanSelect.insertAdjacentHTML('beforeend', html);
 }
 
 /** Popula o <select> de marcas com as marcas presentes nos dados. */
 function populateCatalogBrands() {
   const brands = new Set();
-  DATA.forEach(p => {
+  PRODUCTS.forEach(p => {
     const b = getBrand(p.descricao);
     if (b) brands.add(b);
   });
@@ -587,7 +695,8 @@ function populateCatalogBrands() {
     JOVI: 'Jovi/Vivo', OPPO: 'OPPO', ZTE: 'ZTE',
   };
   const sorted = [...brands].sort((a, b) => (pretty[a] || a).localeCompare(pretty[b] || b));
-  const html = sorted.map(b => `<option value="${b}">${pretty[b] || b}</option>`).join('');
+  const html = sorted.map(b => `<option value="${escapeAttribute(b)}">${escapeHtml(pretty[b] || b)}</option>`).join('');
+  elCatalogBrandSelect.querySelectorAll('option:not(:first-child)').forEach(option => option.remove());
   elCatalogBrandSelect.insertAdjacentHTML('beforeend', html);
 }
 
@@ -610,11 +719,14 @@ function renderCatalog() {
   const brandFilter = elCatalogBrandSelect.value;
   const boostOnly   = elCatalogBoostOnly.checked;
   // Campos digitáveis: vazio = sem limite
-  const minPrice = elCatalogPriceMin.value === '' ? 0 : Number(elCatalogPriceMin.value);
-  const maxPrice = elCatalogPriceMax.value === '' ? Infinity : Number(elCatalogPriceMax.value);
+  const minValue = Number(elCatalogPriceMin.value);
+  const maxValue = Number(elCatalogPriceMax.value);
+  let minPrice = elCatalogPriceMin.value === '' || !Number.isFinite(minValue) ? 0 : Math.max(0, minValue);
+  let maxPrice = elCatalogPriceMax.value === '' || !Number.isFinite(maxValue) ? Infinity : Math.max(0, maxValue);
+  if (minPrice > maxPrice) [minPrice, maxPrice] = [maxPrice, minPrice];
 
   // Monta lista de produtos com preço no plano escolhido
-  let items = DATA
+  let items = PRODUCTS
     .map(product => {
       const rawPrice = getPlanPrice(product, plan);
       if (rawPrice == null) return null;  // não disponível nesse plano
@@ -633,10 +745,11 @@ function renderCatalog() {
 
   // Resumo
   const isNonfid = !!NONFID_FIELD[plan];
-  elCatalogSummary.innerHTML = `<strong>${items.length}</strong> produto(s) no plano <strong>${plan}</strong>`;
+  const productLabel = items.length === 1 ? 'produto' : 'produtos';
+  elCatalogSummary.innerHTML = `<strong>${items.length}</strong> ${productLabel} no plano <strong>${escapeHtml(plan)}</strong>`;
 
   if (!items.length) {
-    elCatalogGrid.innerHTML = `<p class="dropdown-no-results" style="grid-column:1/-1">Nenhum produto encontrado com esses filtros.</p>`;
+    elCatalogGrid.innerHTML = `<p class="catalog-no-results">Nenhum produto encontrado com esses filtros.</p>`;
     return;
   }
 
@@ -649,10 +762,10 @@ function renderCatalog() {
     let tagsHtml = '';
     if (product.tecnologia) {
       const is5g = product.tecnologia.includes('5G');
-      tagsHtml += `<span class="tag ${is5g ? 'tag-5g' : 'tag-tech'}">${product.tecnologia}</span>`;
+      tagsHtml += `<span class="tag ${is5g ? 'tag-5g' : 'tag-tech'}">${escapeHtml(product.tecnologia)}</span>`;
     }
     if (isLoja)     tagsHtml += `<span class="tag tag-acc">LOJA</span>`;
-    else if (isAcc) tagsHtml += `<span class="tag tag-acc">${product.categoria}</span>`;
+    else if (isAcc) tagsHtml += `<span class="tag tag-acc">${escapeHtml(product.categoria || 'Acessório')}</span>`;
 
     const catLabel = isAcc ? (product.categoria || 'Acessório') : 'Aparelho';
 
@@ -661,8 +774,8 @@ function renderCatalog() {
         <div class="catalog-card-top">
           ${logoHtmlFor(product, 'catalog-card-logo')}
           <div class="catalog-card-title">
-            <p class="catalog-card-name">${product.descricao}</p>
-            <p class="catalog-card-cat">${catLabel}</p>
+            <p class="catalog-card-name">${escapeHtml(product.descricao)}</p>
+            <p class="catalog-card-cat">${escapeHtml(catLabel)}</p>
           </div>
         </div>
         ${tagsHtml ? `<div class="catalog-card-tags">${tagsHtml}</div>` : ''}
@@ -691,13 +804,15 @@ function sanitizePriceInputs() {
    PARTE C — TROCA DE MODO
    ══════════════════════════════════════════════════════════ */
 function switchMode(mode) {
-  currentMode = mode;
-  const isSearch = mode === 'search';
+  currentMode = mode === 'catalog' ? 'catalog' : 'search';
+  const isSearch = currentMode === 'search';
 
   elModeSearchTab.classList.toggle('active', isSearch);
   elModeCatalogTab.classList.toggle('active', !isSearch);
   elModeSearchTab.setAttribute('aria-selected', String(isSearch));
   elModeCatalogTab.setAttribute('aria-selected', String(!isSearch));
+  elModeSearchTab.tabIndex = isSearch ? 0 : -1;
+  elModeCatalogTab.tabIndex = isSearch ? -1 : 0;
 
   elModeSearch.hidden  = !isSearch;
   elModeCatalog.hidden = isSearch;
@@ -714,6 +829,15 @@ function switchMode(mode) {
 // ── Troca de modo ──
 elModeSearchTab.addEventListener('click', () => switchMode('search'));
 elModeCatalogTab.addEventListener('click', () => switchMode('catalog'));
+[elModeSearchTab, elModeCatalogTab].forEach(tab => {
+  tab.addEventListener('keydown', event => {
+    if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    event.preventDefault();
+    const nextMode = currentMode === 'search' ? 'catalog' : 'search';
+    switchMode(nextMode);
+    (nextMode === 'search' ? elModeSearchTab : elModeCatalogTab).focus();
+  });
+});
 
 // ── Busca ──
 elInput.addEventListener('input', () => {
@@ -725,19 +849,41 @@ elInput.addEventListener('input', () => {
 elInput.addEventListener('keydown', e => {
   const items = elDropdown.querySelectorAll('.dropdown-item');
   if (e.key === 'ArrowDown') {
+    if (!items.length) return;
     e.preventDefault();
     focusIndex = Math.min(focusIndex + 1, items.length - 1);
-    items.forEach((el, i) => el.classList.toggle('focused', i === focusIndex));
+    items.forEach((el, i) => {
+      const active = i === focusIndex;
+      el.classList.toggle('focused', active);
+      el.setAttribute('aria-selected', String(active));
+    });
+    elInput.setAttribute('aria-activedescendant', items[focusIndex].id);
+    items[focusIndex].scrollIntoView({ block: 'nearest' });
   } else if (e.key === 'ArrowUp') {
+    if (!items.length) return;
     e.preventDefault();
-    focusIndex = Math.max(focusIndex - 1, 0);
-    items.forEach((el, i) => el.classList.toggle('focused', i === focusIndex));
-  } else if (e.key === 'Enter' && focusIndex >= 0) {
+    focusIndex = focusIndex <= 0 ? items.length - 1 : focusIndex - 1;
+    items.forEach((el, i) => {
+      const active = i === focusIndex;
+      el.classList.toggle('focused', active);
+      el.setAttribute('aria-selected', String(active));
+    });
+    elInput.setAttribute('aria-activedescendant', items[focusIndex].id);
+    items[focusIndex].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter' && focusIndex >= 0 && filteredItems[focusIndex]) {
+    e.preventDefault();
     selectProduct(filteredItems[focusIndex]);
   } else if (e.key === 'Escape') {
-    elDropdown.hidden = true;
-    elInput.blur();
+    setSearchExpanded(false);
   }
+});
+
+elDropdown.addEventListener('pointerdown', e => {
+  const item = e.target.closest('.dropdown-item');
+  if (!item) return;
+  e.preventDefault();
+  const product = filteredItems[Number(item.dataset.index)];
+  if (product) selectProduct(product);
 });
 
 elInput.addEventListener('focus', () => {
@@ -745,13 +891,13 @@ elInput.addEventListener('focus', () => {
 });
 
 document.addEventListener('click', e => {
-  if (!e.target.closest('.search-wrapper')) elDropdown.hidden = true;
+  if (!e.target.closest('.search-wrapper')) setSearchExpanded(false);
 });
 
 elClear.addEventListener('click', () => {
   elInput.value      = '';
   elClear.hidden     = true;
-  elDropdown.hidden  = true;
+  setSearchExpanded(false);
   selectedProduct    = null;
   selectedPlan       = null;
   boostActive        = false;
@@ -801,5 +947,10 @@ elCatalogPriceClear.addEventListener('click', () => {
 /* ──────────────────────────────────────────────────────────
    14. INICIALIZAÇÃO
    ────────────────────────────────────────────────────────── */
-populateCatalogPlans();
-populateCatalogBrands();
+try {
+  if (!PRODUCTS.length) throw new Error('Nenhum produto válido foi carregado.');
+  populateCatalogPlans();
+  populateCatalogBrands();
+} catch (error) {
+  showFatalError(error instanceof Error ? error.message : 'Erro inesperado ao iniciar a consulta.');
+}
