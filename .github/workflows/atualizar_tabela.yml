@@ -28,11 +28,15 @@ jobs:
       - name: 📦 Instalar dependências
         run: pip install pandas openpyxl
 
-      # 4. Processa a planilha (planos + Boost Trade In) e regenera os arquivos
+      # 4. Confere a sincronização dos Boosts antes de publicar
+      - name: 🧪 Testar sincronização dos Boosts
+        run: python -m unittest discover -s tests -v
+
+      # 5. Processa a planilha (planos + Boost Trade In) e regenera os arquivos
       - name: ⚙️ Processar planilha
         run: python processar_planilha.py
 
-      # 5. Commita e publica as alterações (se houver)
+      # 6. Commita e publica as alterações (se houver)
       - name: 🚀 Publicar alterações
         run: |
           git config --global user.name  "GitHub Actions Bot"
