@@ -49,6 +49,14 @@ class SiteIntegrityTests(unittest.TestCase):
         self.assertIn("@media (max-width:760px)", self.style)
         self.assertIn("@media (max-width:480px)", self.style)
 
+    def test_alternador_de_tema_esta_completo(self):
+        self.assertIn('id="themeToggle"', self.html)
+        self.assertIn('id="themeColorMeta"', self.html)
+        self.assertIn(':root[data-theme="dark"]', self.style)
+        self.assertIn("const THEME_STORAGE_KEY = 'tim-consulta-theme'", self.script)
+        self.assertIn("prefers-color-scheme: dark", self.html)
+        self.assertIn("localStorage.setItem(THEME_STORAGE_KEY", self.script)
+
 
 if __name__ == "__main__":
     unittest.main()
