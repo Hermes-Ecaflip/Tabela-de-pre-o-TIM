@@ -28,6 +28,7 @@ class BoostSyncTests(unittest.TestCase):
 
     def test_versao_do_script_e_trocada_para_evitar_cache_antigo(self):
         html = (
+            '<link rel="stylesheet" href="style.css?v=estilo-antigo">'
             '<p class="header-badge" aria-label="Total de itens">1 itens</p>'
             '<time datetime="2026-09-01">01/09/2026</time>'
             '<script src="script.js?v=versao-antiga"></script>'
@@ -39,13 +40,15 @@ class BoostSyncTests(unittest.TestCase):
             diretorio_anterior = os.getcwd()
             try:
                 os.chdir(temp_dir)
-                app.atualizar_index_html("02/09/2026", 1, "nova-versao")
+                (Path(temp_dir) / "style.css").write_text("body{}", encoding="utf-8")
+                app.atualizar_index_html("02/09/2026", 1, "novo-script", "novo-estilo")
             finally:
                 os.chdir(diretorio_anterior)
 
             atualizado = index_path.read_text(encoding="utf-8")
 
-        self.assertIn('src="script.js?v=nova-versao"', atualizado)
+        self.assertIn('src="script.js?v=novo-script"', atualizado)
+        self.assertIn('href="style.css?v=novo-estilo"', atualizado)
         self.assertNotIn("versao-antiga", atualizado)
 
     def test_regeneracao_remove_boost_antigo_do_script(self):
