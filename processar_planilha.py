@@ -22,6 +22,7 @@
 ═══════════════════════════════════════════════════════════════════════
 """
 
+import hashlib
 import json
 import re
 import urllib.parse
@@ -279,7 +280,9 @@ def dedup(produtos):
         base["boost"] = max(boosts) if boosts else None
 
         base["planos"] = planos_merged
-        base["variants"] = list({i["descricao_sap"] for i in itens if i.get("descricao_sap")})
+        # Ordem estável: evita gerar um script.js diferente sem mudança real
+        # na planilha e mantém o hash de cache confiável.
+        base["variants"] = sorted({i["descricao_sap"] for i in itens if i.get("descricao_sap")})
         resultado.append(base)
 
     return resultado
@@ -328,18 +331,20 @@ def atualizar_script_js(data_json):
     """Substitui o array DATA dentro de script.js."""
     with open("script.js", "r", encoding="utf-8") as f:
         conteudo = f.read()
-    conteudo = re.sub(
+    conteudo, substituicoes = re.subn(
         r"const DATA = \[.*?\];",
         f"const DATA = {data_json};",
         conteudo, flags=re.DOTALL, count=1,
     )
+    if substituicoes != 1:
+        raise RuntimeError("Não foi possível localizar o array DATA em script.js.")
     with open("script.js", "w", encoding="utf-8") as f:
         f.write(conteudo)
     print("✅ script.js atualizado")
 
 
-def atualizar_index_html(data_br, total):
-    """Atualiza data de vigência e contagem de itens em index.html."""
+def atualizar_index_html(data_br, total, versao_dados):
+    """Atualiza data, contagem e versão do arquivo de dados em index.html."""
     with open("index.html", "r", encoding="utf-8") as f:
         html = f.read()
 
@@ -354,6 +359,18 @@ def atualizar_index_html(data_br, total):
                   f'<p class="header-badge" aria-label="Total de itens">{total} itens</p>', html)
     html = re.sub(r"\d+ itens &middot; Canal Revendas &middot;",
                   f"{total} itens &middot; Canal Revendas &middot;", html)
+
+    # O hash muda sempre que qualquer dado muda, inclusive quando um Boost
+    # deixa de existir. Assim o navegador baixa o script.js novo em vez de
+    # reutilizar uma cópia antiga que ainda exibia o benefício removido.
+    html, substituicoes = re.subn(
+        r'<script src="script\.js(?:\?v=[^"]*)?"></script>',
+        f'<script src="script.js?v={versao_dados}"></script>',
+        html,
+        count=1,
+    )
+    if substituicoes != 1:
+        raise RuntimeError("Não foi possível localizar a inclusão de script.js em index.html.")
 
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html)
@@ -399,12 +416,13 @@ def main():
     total = len(todos)
     com_boost = sum(1 for p in todos if p.get("boost"))
     data_json = json.dumps(todos, ensure_ascii=False, separators=(",", ":"))
+    versao_dados = hashlib.sha256(data_json.encode("utf-8")).hexdigest()[:12]
 
     print(f"✅ {total} itens extraídos ({len(aparelhos)} aparelhos + {len(acessorios)} acessórios)")
     print(f"⚡ {com_boost} itens com Boost ativável no site")
 
     atualizar_script_js(data_json)
-    atualizar_index_html(data_br, total)
+    atualizar_index_html(data_br, total, versao_dados)
     atualizar_readme(data_br, total)
 
     print(f"\n🎉 Concluído! Tabela de {data_br} com {total} itens publicada.")

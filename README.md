@@ -84,6 +84,8 @@ A tabela é atualizada semanalmente pela TIM. Para atualizar o site:
 
 > **Nota:** A data é lida do campo `DATA INÍCIO`, os planos são detectados automaticamente, e o **Boost Trade In** é lido da aba `TRADE IN` e casado por código — tudo sem edição manual.
 
+O processador recria a lista de Boosts do zero em cada atualização. Quando um Boost é removido da planilha, ele também deixa de aparecer no site. O endereço do `script.js` recebe uma versão baseada no conteúdo atualizado, evitando que o navegador reutilize dados antigos do cache.
+
 ---
 
 ## 🗂️ Estrutura do Projeto
@@ -99,6 +101,7 @@ Tabela-de-preco-da-TIM/
 ├── style.css               # Estilos organizados por seções comentadas
 ├── script.js               # Lógica JavaScript com comentários
 ├── processar_planilha.py   # Script Python de extração da planilha
+├── tests/                  # Testes da sincronização de Boosts
 ├── tabela_precos.xlsx      # Planilha oficial TIM (substituir a cada semana)
 ├── README.md               # Este arquivo
 └── LICENSE                 # Licença MIT
